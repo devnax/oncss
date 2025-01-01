@@ -1,7 +1,7 @@
 {
    "name": "oncss",
-   "version": "1.0.1",
-   "description": "",
+   "version": "1.0.2",
+   "description": "A CSS framework for modern web development.",
    "main": "./index.js",
    "scripts": {
       "start": "makepack serve",
