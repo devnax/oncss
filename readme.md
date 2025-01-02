@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="120" src="https://raw.githubusercontent.com/devnax/oncss/main/logo.png" alt="React Rock logo">
+  <img width="120" src="https://raw.githubusercontent.com/devnax/oncss/main/logo.png" alt="ONCSS Logo">
 </p>
 
 <h1 align="center">ONCSS</h1>
