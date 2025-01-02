@@ -29,6 +29,7 @@ const App = () => {
       lg: "green",
       xl: "yellow",
     },
+
     "& button": {
       "@media (max-width: 500px)": {
         "& ": {
@@ -62,6 +63,7 @@ const App = () => {
   }, {
     ..._options,
   })
+
 
   let iterations = 0
   const startJson = performance.now();
@@ -120,41 +122,43 @@ const App = () => {
         }
       }
     },
-    skipProps: (prop) => {
-      return true
-    },
-    getProps: (prop) => {
-      if (prop == "color") {
-        return {
-          color: "green",
-          background: "yellow",
-          "& a": {
-            color: "red"
-          }
-        }
-      }
-    }
+    // getProps: (prop) => {
+    //   if (prop == "color") {
+    //     return {
+    //       color: "green",
+    //       background: "yellow",
+    //       "& a": {
+    //         color: "red"
+    //       }
+    //     }
+    //   }
+    // }
   }
-
 
   const r = css<Aliases, Breakpoints>({
     color: "red",
     background: "yellow",
+
+    "@container style(-is: true)": {
+      color: "yellow",
+      "& a": {
+        height: "100"
+      },
+      "@media (max-width: 500px)": {
+        "&": {
+          height: 100,
+        }
+      },
+    },
+
     "& a": {
       color: "red"
     }
   }, options)
 
 
-  console.log(r);
-
-  useEffect(() => {
-    CSSFactory
-  }, [])
-
-
   return (
-    <div className={cls}>
+    <div className={cls.classname}>
       wellcome
       <button onClick={() => setCount(Math.random())}>up</button>
     </div>

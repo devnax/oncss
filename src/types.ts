@@ -2,11 +2,16 @@ import * as CSS from 'csstype'
 type CSSProperties = CSS.Properties<number | string>;
 
 type CSSNestedSelectors<Aliases, BreakpointKeys extends string> = {
-   [key: `& ${string}`]: CSSPropsWithoutGlobal<Aliases, BreakpointKeys>
+   [key: `& ${string}`]: CSSPropsWithoutGlobal<Aliases, BreakpointKeys>;
 };
 
+type CSSNestedSelectorsWithoutChild<Aliases, BreakpointKeys extends string> = {
+   "&": CSSPropsWithoutGlobal<Aliases, BreakpointKeys>;
+};
+
+type AtRules = "media" | "container" | "layer" | "supports"
 type MediaCSS<Aliases, BreakpointKeys extends string> = {
-   [key: `@media ${string}`]: CSSProps<Aliases, BreakpointKeys>;
+   [key: `@${AtRules} ${string}`]: CSSProps<Aliases, BreakpointKeys>;
 };
 
 type KeyframesCSS<Aliases> = {
@@ -35,7 +40,7 @@ type CSSValue<Aliases, BreakpointKeys extends string> = {
    [Property in keyof (CSSProperties & Aliases)]?: (CSSProperties & Aliases)[Property] | BreakpointTypes<BreakpointKeys, (CSSProperties & Aliases)[Property]>
 }
 
-export type CSSPropsWithoutGlobal<Aliases, BreakpointKeys extends string> = CSSValue<Aliases, BreakpointKeys> | KeyframesCSS<Aliases> | MediaCSS<Aliases, BreakpointKeys> | CSSNestedSelectors<Aliases, BreakpointKeys>
+export type CSSPropsWithoutGlobal<Aliases, BreakpointKeys extends string> = CSSValue<Aliases, BreakpointKeys> | KeyframesCSS<Aliases> | MediaCSS<Aliases, BreakpointKeys> | CSSNestedSelectors<Aliases, BreakpointKeys> | CSSNestedSelectorsWithoutChild<Aliases, BreakpointKeys>
 export type CSSProps<Aliases, BreakpointKeys extends string> = GlobalCSS<Aliases, BreakpointKeys> | CSSPropsWithoutGlobal<Aliases, BreakpointKeys>
 export type AliasFn<Aliases> = (prop: string, value: string | number) => CSSValueWithoutBreakpoint<Aliases>
 
@@ -60,5 +65,4 @@ export type CSSFactoryType = {
    skiped: string[];
    getStyleTag: () => HTMLStyleElement | null;
    deleteStyle: () => void;
-   toString: () => string;
 }

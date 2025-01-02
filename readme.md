@@ -29,6 +29,7 @@ The `css` function is the heart of `oncss`, designed to dynamically generate and
 - **Keyframes**: Create animations with `@keyframes`.
 - **Global Styles**: Apply styles globally with `@global`.
 - **Custom Breakpoints**: Define reusable breakpoints for responsiveness.
+- **Other At-Rules**: Utilize additional at-rules like `@container`, `@layer`, and `@supports`.
 
 ### Basic Example
 
@@ -46,7 +47,7 @@ const buttonStyles = css({
   },
 });
 
-console.log(buttonStyles.toString());
+console.log(buttonStyles);
 ```
 
 ---
@@ -199,6 +200,115 @@ const globalStyles = css({
     },
   },
 });
+```
+
+---
+
+## Supported At-Rules
+
+`oncss` supports various CSS at-rules to enhance your styling capabilities. Here is a list of supported at-rules with descriptions:
+
+| At-Rule      | Description                                                                  |
+| ------------ | ---------------------------------------------------------------------------- |
+| `@media`     | Used for applying styles based on media queries for responsive design.       |
+| `@keyframes` | Defines animations that can be applied to elements.                          |
+| `@global`    | Applies styles globally across the entire application.                       |
+| `@container` | Used for container queries to apply styles based on container size.          |
+| `@layer`     | Defines style layers to control the order of style application.              |
+| `@supports`  | Applies styles based on the support of specific CSS features in the browser. |
+
+---
+
+## Server-Side Styling
+
+`oncss` supports server-side rendering (SSR) by utilizing the `CSSFactory` to store and manage generated CSS styles. This allows you to extract and inject styles into your server-rendered HTML.
+
+### Example with React
+
+Here's an example of how to use `oncss` for server-side rendering with React:
+
+```tsx
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import css, { CSSFactory } from 'oncss';
+
+const buttonStyle = css({
+  backgroundColor: 'blue',
+  color: 'white',
+  padding: '10px 20px',
+  borderRadius: '5px',
+  '&:hover': {
+    backgroundColor: 'darkblue',
+  },
+});
+
+function Button() {
+  return <button className={buttonStyle}>Click Me</button>;
+}
+
+const App = () => (
+  <div>
+    <Button />
+  </div>
+);
+
+// Render the component to a string
+const html = ReactDOMServer.renderToString(<App />);
+
+// Extract the generated CSS from CSSFactory
+const styles = Array.from(CSSFactory.values())
+  .map(style => style.css)
+  .join('\n');
+
+// Inject the styles into the HTML
+const fullHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSR with oncss</title>
+  <style>${styles}</style>
+</head>
+<body>
+  <div id="root">${html}</div>
+</body>
+</html>
+`;
+
+console.log(fullHtml);
+```
+
+In this example, the `CSSFactory` is used to collect all generated CSS styles during the server-side rendering process. These styles are then injected into the HTML document, ensuring that the styles are applied correctly when the page is loaded in the browser.
+
+---
+
+## Utility Functions
+
+### CSSFactory
+
+`CSSFactory` is a global cache for storing generated CSS styles. It helps in reusing styles and avoiding redundant style generation.
+
+### formatCSSProp
+
+`formatCSSProp` is a utility function that converts camelCase CSS property names to kebab-case.
+
+```typescript
+import { formatCSSProp } from 'oncss';
+
+const formattedProp = formatCSSProp('backgroundColor');
+console.log(formattedProp); // 'background-color'
+```
+
+### formatCSSValue
+
+`formatCSSValue` is a utility function that formats CSS values, adding units like `px` where necessary.
+
+```typescript
+import { formatCSSValue } from 'oncss';
+
+const formattedValue = formatCSSValue('width', 100);
+console.log(formattedValue); // '100px'
 ```
 
 ---

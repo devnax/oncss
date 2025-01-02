@@ -105,7 +105,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             has.cache = true
             return has
         }
-        classname = uid(cachekey)
+        classname = (opt?.classPrefix || "") + uid(cachekey)
     } else if (typeof cls !== 'string') {
         throw new Error(`Invalid class name: ${cls}`)
     }
@@ -116,8 +116,8 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
 
     for (let prop in _css) {
         let val = (_css as any)[prop]
-
-        if (prop.startsWith("&")) {
+        let firstChar = prop.charAt(0)
+        if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
             const r: any = style(val, ncls, opt)
             if (opt?.skipProps) {
@@ -127,21 +127,28 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 }
             }
             stack.push(r.stack)
-        } else if (prop.startsWith("@media")) {
-            let r: any = style(val, classname, opt)
-            const mediacss = prop + "{" + r.stack + "}"
-            stack.push(mediacss)
-            if (opt?.skipProps) {
-                skiped = {
-                    ...skiped,
-                    ...r.skiped
+        } else if (firstChar === '@') {
+            if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
+                let _css = ''
+                for (let selector in val) {
+                    let r: any = style(val[selector], selector, opt)
+                    _css += r.stack
+                    if (opt?.skipProps) {
+                        skiped = {
+                            ...skiped,
+                            ...r.skiped
+                        }
+                    }
                 }
-            }
-        } else if (prop.startsWith("@keyframes")) {
-            let frams = ''
-            for (let frame in val) {
-                const r: any = style(val[frame], frame, opt)
-                frams += r.stack
+                if (prop.startsWith("@keyframes")) {
+                    stack.push(`${prop}{${_css}}`)
+                } else {
+                    stack.push(_css)
+                }
+            } else {
+                let r: any = style(val, classname, opt)
+                const atcss = prop + "{" + r.stack + "}"
+                stack.push(atcss)
                 if (opt?.skipProps) {
                     skiped = {
                         ...skiped,
@@ -149,20 +156,6 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     }
                 }
             }
-            stack.push(`${prop}{${frams}}`)
-        } else if (prop.startsWith("@global")) {
-            let _css = ''
-            for (let selector in val) {
-                let r: any = style(val[selector], selector, opt)
-                _css += r.stack
-                if (opt?.skipProps) {
-                    skiped = {
-                        ...skiped,
-                        ...r.skiped
-                    }
-                }
-            }
-            stack.push(_css)
         } else if (typeof val === 'object') {
             for (let media in val) {
                 if (typeof val[media] === 'object' || typeof val[media] === 'function' || Array.isArray(val[media])) {
@@ -198,11 +191,17 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (opt?.getProps) {
                 let _props: any = opt.getProps(prop, val, _css)
                 if (_props) {
-                    let s = style(_props, classname, {
+                    let r: any = style(_props, classname, {
                         ...opt,
                         getProps: undefined
                     })
-                    stack.push(s)
+                    if (opt?.skipProps) {
+                        skiped = {
+                            ...skiped,
+                            ...r.skiped
+                        }
+                    }
+                    stack.push(r.stack)
                     continue;
                 }
             }
@@ -211,20 +210,15 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             } else if (opt?.aliases && (opt.aliases as any)[prop]) {
                 let _props = (opt.aliases as any)[prop](prop, val)
                 if (_props) {
-                    let r: any = style(_props, classname, {
-                        ...opt,
-                        getProps: undefined
-                    })
-                    let s = r.stack
-                    s = s.replace(`${classname}{`, '').replace(`}`, '')
-                    s = s.replace(`}`, '')
-                    stack[0] += s
+                    let r: any = style(_props, classname, opt)
+                    r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
+                    stack[0] += r.stack
                     skiped[classname as string] = r.skiped
                     continue;
                 }
             }
-            const format = cssPrefix(prop, val)
-            stack[0] += `${format.prop}:${format.value};`
+            let p = cssPrefix(prop, val)
+            stack[0] += `${p.prop}:${p.value};`
         }
     }
     stack[0] += "}"
@@ -245,13 +239,13 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             css: stack,
             cssraw: _css,
             skiped,
-            toString: () => classname as string,
             getStyleTag: () => document?.querySelector(`[data-oncss="${classname}"]`) as HTMLStyleElement | null,
             deleteStyle: () => {
                 const tag = document?.querySelector(`[data-oncss="${classname}"]`)
                 tag && tag.remove()
             },
         }
+        r.toString = () => classname as string
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle || true
         if (inject && typeof window !== 'undefined') {
