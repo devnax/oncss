@@ -260,10 +260,9 @@ const App = () => (
 // Render the component to a string
 const html = ReactDOMServer.renderToString(<App />);
 
-// Extract the generated CSS from CSSFactory
-const styles = Array.from(CSSFactory.values())
-  .map(style => style.css)
-  .join('\n');
+let styles: any = Array.from(CSSFactory.values()).map((style) => {
+  return `<style data-oncss="${style.classname}">${style.css}</style>`
+});
 
 // Inject the styles into the HTML
 const fullHtml = `
@@ -273,7 +272,7 @@ const fullHtml = `
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SSR with oncss</title>
-  <style>${styles}</style>
+  ${styles}
 </head>
 <body>
   <div id="root">${html}</div>

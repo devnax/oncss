@@ -249,11 +249,12 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle || true
         if (inject && typeof window !== 'undefined') {
-            if (document.querySelector(`[data-oncss="${classname}"]`)) return;
-            const tag = document.createElement("style");
-            tag.innerHTML = r.css
-            tag.setAttribute(`data-oncss`, classname as string)
-            document.head.append(tag)
+            if (!document.querySelector(`[data-oncss="${classname}"]`)) {
+                const tag = document.createElement("style");
+                tag.innerHTML = r.css
+                tag.setAttribute(`data-oncss`, classname as string)
+                document.head.append(tag)
+            }
         }
         return r
     }
