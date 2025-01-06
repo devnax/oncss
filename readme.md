@@ -356,7 +356,7 @@ const options: CSSOptionProps<MyAliases, 'sm' | 'md' | 'lg'> = {
     lg: 1024,
   },
   aliases: {
-    customColor: (prop, value) => ({ color: value }),
+    customColor: (value) => ({ color: value }),
   },
 };
 

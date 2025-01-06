@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import css, { CSSFactory, CSSOptionProps } from './src'
+import css, { OptionAliases, CSSFactory, CSSOptionProps } from './src'
 
 type Breakpoints = "xs" | "sm" | "md" | "lg"
 type Aliases = {
@@ -114,9 +114,17 @@ const App = () => {
   const endJson = performance.now();
   // console.log(`JSON.stringify total time: ${((endJson - startJson) / 1000).toFixed(6)} seconds`);
 
+  let aliases: OptionAliases<Aliases> = {
+    m: (val) => {
+      return {
+        margin: val
+      }
+    }
+  }
+
   const options: CSSOptionProps<Aliases, Breakpoints> = {
     aliases: {
-      m: (prop, val) => {
+      m: (val) => {
         return {
           margin: val
         }
