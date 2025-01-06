@@ -4,8 +4,18 @@ import css, { OptionAliases, CSSFactory, CSSOptionProps } from './src'
 
 type Breakpoints = "xs" | "sm" | "md" | "lg"
 type Aliases = {
-  m: number
+  m: string
 }
+
+let aliases: OptionAliases<Aliases> = {
+  m: (val: string) => {
+    return {
+      backgroundColor: val
+    }
+  }
+}
+
+
 
 const App = () => {
   const [count, setCount] = React.useState(0)
@@ -114,13 +124,7 @@ const App = () => {
   const endJson = performance.now();
   // console.log(`JSON.stringify total time: ${((endJson - startJson) / 1000).toFixed(6)} seconds`);
 
-  let aliases: OptionAliases<Aliases> = {
-    m: (val) => {
-      return {
-        margin: val
-      }
-    }
-  }
+
 
   const options: CSSOptionProps<Aliases, Breakpoints> = {
     aliases: {

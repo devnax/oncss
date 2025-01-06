@@ -42,11 +42,10 @@ type CSSValue<Aliases, BreakpointKeys extends string> = {
 
 export type CSSPropsWithoutGlobal<Aliases, BreakpointKeys extends string> = CSSValue<Aliases, BreakpointKeys> | KeyframesCSS<Aliases> | MediaCSS<Aliases, BreakpointKeys> | CSSNestedSelectors<Aliases, BreakpointKeys> | CSSNestedSelectorsWithoutChild<Aliases, BreakpointKeys>
 export type CSSProps<Aliases, BreakpointKeys extends string> = GlobalCSS<Aliases, BreakpointKeys> | CSSPropsWithoutGlobal<Aliases, BreakpointKeys>
-export type AliasFn<Aliases> = (value: string | number) => CSSValueWithoutBreakpoint<Aliases>
+export type AliasFn<Aliases> = (value: any) => CSSValueWithoutBreakpoint<Aliases>
 export type OptionAliases<Aliases> = {
    [key in keyof Aliases]: AliasFn<Aliases>
 }
-
 
 export interface CSSOptionProps<Aliases, BreakpointKeys extends string> {
    classPrefix?: string;
