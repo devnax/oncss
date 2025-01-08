@@ -205,9 +205,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     continue;
                 }
             }
-            if (opt?.getValue) {
-                val = opt.getValue(prop, val, _css)
-            } else if (opt?.aliases && (opt.aliases as any)[prop]) {
+            if (opt?.aliases && (opt.aliases as any)[prop]) {
                 let _props = (opt.aliases as any)[prop](val)
                 if (_props) {
                     let r: any = style(_props, classname, opt)
@@ -216,6 +214,9 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     skiped[classname as string] = r.skiped
                     continue;
                 }
+            }
+            if (opt?.getValue) {
+                val = opt.getValue(prop, val, _css)
             }
             let p = cssPrefix(prop, val)
             stack[0] += `${p.prop}:${p.value};`

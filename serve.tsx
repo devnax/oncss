@@ -10,7 +10,7 @@ type Aliases = {
 let aliases: OptionAliases<Aliases> = {
   m: (val: string) => {
     return {
-      backgroundColor: val
+      margin: val + "px"
     }
   }
 }
@@ -20,7 +20,7 @@ let aliases: OptionAliases<Aliases> = {
 const App = () => {
   const [count, setCount] = React.useState(0)
   const _options = {
-
+    aliases,
     breakpoints: {
       xs: 0,
       sm: 500,
