@@ -208,7 +208,10 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (opt?.aliases && (opt.aliases as any)[prop]) {
                 let _props = (opt.aliases as any)[prop](val)
                 if (_props) {
-                    let r: any = style(_props, classname, opt)
+                    let r: any = style(_props, classname, {
+                        ...opt,
+                        aliases: undefined
+                    })
                     r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
                     stack[0] += r.stack
                     skiped[classname as string] = r.skiped

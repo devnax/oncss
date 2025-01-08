@@ -12,9 +12,13 @@ let aliases: OptionAliases<Aliases> = {
     return {
       margin: val + "px"
     }
+  },
+  radius: (val: string) => {
+    return {
+      borderRadius: val + "px"
+    }
   }
 }
-
 
 
 const App = () => {
@@ -27,11 +31,16 @@ const App = () => {
       md: 700,
       lg: 900,
       xl: 1100,
+    },
+    getValue: (p: any, v: any, _c: any,) => {
+      return v
     }
   }
 
   const cls = css({
     height: 200,
+    m: 100,
+    radius: 100,
     background: {
       xs: "orange",
       sm: "red",
