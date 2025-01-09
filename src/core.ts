@@ -116,6 +116,11 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
 
     for (let prop in _css) {
         let val = (_css as any)[prop]
+        if (opt?.skipProps && opt.skipProps(prop, val)) {
+            if (!((classname as any) in skiped)) skiped[classname as string] = []
+            skiped[classname as string].push(prop)
+            continue
+        }
         let firstChar = prop.charAt(0)
         if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
@@ -183,11 +188,6 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 }
             }
         } else {
-            if (opt?.skipProps && opt.skipProps(prop, val)) {
-                if (!skiped[classname as string]) skiped[classname as string] = []
-                skiped[classname as string].push(prop)
-                continue
-            }
             if (opt?.getProps) {
                 let _props: any = opt.getProps(prop, val, _css)
                 if (_props) {
@@ -214,7 +214,6 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     })
                     r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
                     stack[0] += r.stack
-                    skiped[classname as string] = r.skiped
                     continue;
                 }
             }

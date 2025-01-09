@@ -4,7 +4,8 @@ import css, { OptionAliases, CSSFactory, CSSOptionProps } from './src'
 
 type Breakpoints = "xs" | "sm" | "md" | "lg"
 type Aliases = {
-  m: string
+  m: string;
+  radius: number;
 }
 
 let aliases: OptionAliases<Aliases> = {
@@ -34,13 +35,15 @@ const App = () => {
     },
     getValue: (p: any, v: any, _c: any,) => {
       return v
+    },
+    skipProps: (p: any, v: any) => {
+      return false
     }
   }
 
   const cls = css({
     height: 200,
-    m: 100,
-    radius: 100,
+    radius: 20,
     background: {
       xs: "orange",
       sm: "red",
@@ -48,41 +51,7 @@ const App = () => {
       lg: "green",
       xl: "yellow",
     },
-
-    "& button": {
-      "@media (max-width: 500px)": {
-        "& ": {
-          height: 100,
-        }
-      },
-      color: {
-        xs: "orange",
-        sm: "red",
-        md: "blue",
-        lg: "green",
-        xl: "yellow",
-      },
-      animationName: "fade",
-      animationDuration: "3s",
-      "@keyframes fade": {
-        from: {
-          opacity: 0
-        },
-        to: {
-          opacity: 1
-        }
-      },
-    },
-    "@global": {
-      body: {
-        padding: 0,
-        margin: 0
-      }
-    },
-  }, {
-    ..._options,
-  })
-
+  }, _options)
 
   let iterations = 0
   const startJson = performance.now();
@@ -126,56 +95,10 @@ const App = () => {
           margin: 0
         }
       },
-    }, {
-      ..._options,
-    })
+    }, _options)
   }
   const endJson = performance.now();
   // console.log(`JSON.stringify total time: ${((endJson - startJson) / 1000).toFixed(6)} seconds`);
-
-
-
-  const options: CSSOptionProps<Aliases, Breakpoints> = {
-    aliases: {
-      m: (val) => {
-        return {
-          margin: val
-        }
-      }
-    },
-    // getProps: (prop) => {
-    //   if (prop == "color") {
-    //     return {
-    //       color: "green",
-    //       background: "yellow",
-    //       "& a": {
-    //         color: "red"
-    //       }
-    //     }
-    //   }
-    // }
-  }
-
-  const r = css<Aliases, Breakpoints>({
-    color: "red",
-    background: "yellow",
-
-    "@container style(-is: true)": {
-      color: "yellow",
-      "& a": {
-        height: "100"
-      },
-      "@media (max-width: 500px)": {
-        "&": {
-          height: 100,
-        }
-      },
-    },
-
-    "& a": {
-      color: "red"
-    }
-  }, options)
 
 
   return (

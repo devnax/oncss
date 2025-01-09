@@ -52,7 +52,7 @@ export interface CSSOptionProps<Aliases, BreakpointKeys extends string> {
    breakpoints?: { [key in BreakpointKeys]: number };
    aliases?: OptionAliases<Aliases>;
    injectStyle?: boolean;
-   skipProps?: (prop: string, value: string | number) => boolean;
+   skipProps?: (prop: string, value: string | number) => boolean | void;
    getValue?: (value: string | number, prop: string, css: CSSProps<Aliases, BreakpointKeys>) => (string | number);
    getProps?: (prop: string, value: string | number, css: CSSProps<Aliases, BreakpointKeys>) => CSSProps<Aliases, BreakpointKeys> | void;
 }
