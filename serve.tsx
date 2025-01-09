@@ -51,6 +51,9 @@ const App = () => {
       lg: "green",
       xl: "yellow",
     },
+    "&:hover": {
+      background: "yellow"
+    },
   }, _options)
 
   let iterations = 0
@@ -65,6 +68,7 @@ const App = () => {
         lg: "green",
         xl: "yellow",
       },
+
       "& button": {
         "@media (max-width: 500px)": {
           "& ": {

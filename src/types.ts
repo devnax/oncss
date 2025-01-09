@@ -2,7 +2,7 @@ import * as CSS from 'csstype'
 type CSSProperties = CSS.Properties<number | string>;
 
 type CSSNestedSelectors<Aliases, BreakpointKeys extends string> = {
-   [key: `& ${string}`]: CSSPropsWithoutGlobal<Aliases, BreakpointKeys>;
+   [key in `& ${string}` | `&:${string}`]: CSSPropsWithoutGlobal<Aliases, BreakpointKeys>;
 };
 
 type CSSNestedSelectorsWithoutChild<Aliases, BreakpointKeys extends string> = {

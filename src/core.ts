@@ -116,11 +116,6 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
 
     for (let prop in _css) {
         let val = (_css as any)[prop]
-        if (opt?.skipProps && opt.skipProps(prop, val)) {
-            if (!((classname as any) in skiped)) skiped[classname as string] = []
-            skiped[classname as string].push(prop)
-            continue
-        }
         let firstChar = prop.charAt(0)
         if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
@@ -161,67 +156,74 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     }
                 }
             }
-        } else if (typeof val === 'object') {
-            for (let media in val) {
-                if (typeof val[media] === 'object' || typeof val[media] === 'function' || Array.isArray(val[media])) {
-                    throw new Error(`Invalid css value: ${val[media]}`);
-                }
-                let breakpoint = media
-                let isNumber = !isNaN(parseInt(breakpoint))
-                if (!isNumber) {
-                    if (opt?.breakpoints && !isNaN(parseInt((opt.breakpoints as any)[media]))) {
-                        breakpoint = opt.breakpoints[media as BreakpointKeys].toString()
-                    } else {
-                        throw new Error(`Invalid breakpoint prop: ${media}`);
-                    }
-                }
-                let _css = { [prop]: val[media] }
-                let r: any = style(_css, classname, opt)
-                let _style = r.stack
-                let mediakey = `@media (min-width: ${breakpoint}px)`
-                medias[mediakey] = medias[mediakey] ? medias[mediakey] + _style : _style
-                if (opt?.skipProps) {
-                    skiped = {
-                        ...skiped,
-                        ...r.skiped
-                    }
-                }
-            }
         } else {
-            if (opt?.getProps) {
-                let _props: any = opt.getProps(prop, val, _css)
-                if (_props) {
-                    let r: any = style(_props, classname, {
-                        ...opt,
-                        getProps: undefined
-                    })
+            if (opt?.skipProps && opt.skipProps(prop, val)) {
+                if (!((classname as any) in skiped)) skiped[classname as string] = []
+                skiped[classname as string].push(prop)
+                continue
+            }
+            if (typeof val === 'object') {
+                for (let media in val) {
+                    if (typeof val[media] === 'object' || typeof val[media] === 'function' || Array.isArray(val[media])) {
+                        throw new Error(`Invalid css value: ${val[media]}`);
+                    }
+                    let breakpoint = media
+                    let isNumber = !isNaN(parseInt(breakpoint))
+                    if (!isNumber) {
+                        if (opt?.breakpoints && !isNaN(parseInt((opt.breakpoints as any)[media]))) {
+                            breakpoint = opt.breakpoints[media as BreakpointKeys].toString()
+                        } else {
+                            throw new Error(`Invalid breakpoint prop: ${media}`);
+                        }
+                    }
+                    let _css = { [prop]: val[media] }
+                    let r: any = style(_css, classname, opt)
+                    let _style = r.stack
+                    let mediakey = `@media (min-width: ${breakpoint}px)`
+                    medias[mediakey] = medias[mediakey] ? medias[mediakey] + _style : _style
                     if (opt?.skipProps) {
                         skiped = {
                             ...skiped,
                             ...r.skiped
                         }
                     }
-                    stack.push(r.stack)
-                    continue;
                 }
-            }
-            if (opt?.aliases && (opt.aliases as any)[prop]) {
-                let _props = (opt.aliases as any)[prop](val)
-                if (_props) {
-                    let r: any = style(_props, classname, {
-                        ...opt,
-                        aliases: undefined
-                    })
-                    r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
-                    stack[0] += r.stack
-                    continue;
+            } else {
+                if (opt?.getProps) {
+                    let _props: any = opt.getProps(prop, val, _css)
+                    if (_props) {
+                        let r: any = style(_props, classname, {
+                            ...opt,
+                            getProps: undefined
+                        })
+                        if (opt?.skipProps) {
+                            skiped = {
+                                ...skiped,
+                                ...r.skiped
+                            }
+                        }
+                        stack.push(r.stack)
+                        continue;
+                    }
                 }
+                if (opt?.aliases && (opt.aliases as any)[prop]) {
+                    let _props = (opt.aliases as any)[prop](val)
+                    if (_props) {
+                        let r: any = style(_props, classname, {
+                            ...opt,
+                            aliases: undefined
+                        })
+                        r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
+                        stack[0] += r.stack
+                        continue;
+                    }
+                }
+                if (opt?.getValue) {
+                    val = opt.getValue(prop, val, _css)
+                }
+                let p = cssPrefix(prop, val)
+                stack[0] += `${p.prop}:${p.value};`
             }
-            if (opt?.getValue) {
-                val = opt.getValue(prop, val, _css)
-            }
-            let p = cssPrefix(prop, val)
-            stack[0] += `${p.prop}:${p.value};`
         }
     }
     stack[0] += "}"
