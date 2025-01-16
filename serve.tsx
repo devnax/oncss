@@ -44,6 +44,12 @@ const App = () => {
   }
 
   const cls = css({
+    "&:hover": {
+      background: "yellow",
+      "& a": {
+        color: "red"
+      }
+    },
     height: 200,
     radius: 20,
     background: {
@@ -53,12 +59,7 @@ const App = () => {
       lg: "green",
       xl: "yellow",
     },
-    "&:hover": {
-      background: "yellow",
-      "& a": {
-        color: "red"
-      }
-    },
+
   }, _options)
 
 

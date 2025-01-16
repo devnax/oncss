@@ -108,7 +108,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
         let firstChar = prop.charAt(0)
         if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
-            const r: any = style(val, ncls, opt, ++dept)
+            const r: any = style(val, ncls, opt, dept + 1)
             if (opt?.skipProps) {
                 skiped = {
                     ...skiped,
@@ -120,7 +120,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
                 let _css = ''
                 for (let selector in val) {
-                    let r: any = style(val[selector], selector, opt, ++dept)
+                    let r: any = style(val[selector], selector, opt, dept + 1)
                     _css += r.stack
                     if (opt?.skipProps) {
                         skiped = {
@@ -135,7 +135,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     stack.push(_css)
                 }
             } else {
-                let r: any = style(val, classname, opt, ++dept)
+                let r: any = style(val, classname, opt, dept + 1)
                 const atcss = prop + "{" + r.stack + "}"
                 stack.push(atcss)
                 if (opt?.skipProps) {
