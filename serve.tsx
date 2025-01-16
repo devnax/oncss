@@ -56,54 +56,40 @@ const App = () => {
     },
   }, _options)
 
-  let iterations = 0
-  const startJson = performance.now();
-  for (let i = 0; i < iterations; i++) {
-    css({
-      height: 0,
-      background: {
-        xs: "orange",
-        sm: "red",
-        md: "blue",
-        lg: "green",
-        xl: "yellow",
-      },
+  const animdash = "dash"
+  const animrotate = "animrotate"
 
-      "& button": {
-        "@media (max-width: 500px)": {
-          "& ": {
-            height: 100,
-          }
-        },
-        color: {
-          xs: "orange",
-          sm: "red",
-          md: "blue",
-          lg: "green",
-          xl: "yellow",
-        },
-        animationName: "fade",
-        animationDuration: "3s",
-        "@keyframes fade": {
-          from: {
-            opacity: 0
-          },
-          to: {
-            opacity: 1
-          }
-        },
-      },
-      "@global": {
-        body: {
-          padding: 0,
-          margin: 0
+  const c = css({
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    "& svg[class='circle-progress-svg']": {
+      zIndex: 1,
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      [`@keyframes ${animrotate}`]: {
+        "100%": {
+          transform: "rotate(360deg)"
         }
       },
-    }, _options)
-  }
-  const endJson = performance.now();
-  // console.log(`JSON.stringify total time: ${((endJson - startJson) / 1000).toFixed(6)} seconds`);
-
+      "& circle.circle-progress-thumb": {
+        fill: "none",
+        strokeLinecap: "round",
+        [`@keyframes ${animdash}`]: {
+          "0%": { strokeDasharray: "1, 150", strokeDashoffset: 0 },
+          "50%": { strokeDasharray: "90, 150", strokeDashoffset: -35 },
+          "100%": { strokeDasharray: "90, 150", strokeDashoffset: -124 }
+        }
+      },
+      "& .circle-progress-track": {
+        fill: "none",
+      }
+    },
+    position: "relative"
+  })
 
   return (
     <div className={cls.classname}>

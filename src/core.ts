@@ -6,7 +6,7 @@ export const CSSFactory = _global.Factory as Map<string, CSSFactoryType>
 
 export const uid = (str: string) => {
     var hash = 0, len = str.length;
-    for (var i = 0; i < len; i++) {
+    for (var i = 0; i < len; i) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);
         hash |= 0;
     }
@@ -95,7 +95,7 @@ export const cssPrefix = (prop: string, value: string): { prop: string, value: s
     return { prop: _prop, value: _value };
 };
 
-export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>) => {
+export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 0) => {
     let cachekey
     let classname = cls
     if (!cls) {
@@ -113,13 +113,14 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     let stack: any = [`${classname}{`]
     let medias: any = {}
     let skiped: any = {}
+    dept += 1
 
     for (let prop in _css) {
         let val = (_css as any)[prop]
         let firstChar = prop.charAt(0)
         if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
-            const r: any = style(val, ncls, opt)
+            const r: any = style(val, ncls, opt, dept)
             if (opt?.skipProps) {
                 skiped = {
                     ...skiped,
@@ -131,7 +132,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
                 let _css = ''
                 for (let selector in val) {
-                    let r: any = style(val[selector], selector, opt)
+                    let r: any = style(val[selector], selector, opt, dept)
                     _css += r.stack
                     if (opt?.skipProps) {
                         skiped = {
@@ -146,7 +147,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     stack.push(_css)
                 }
             } else {
-                let r: any = style(val, classname, opt)
+                let r: any = style(val, classname, opt, dept)
                 const atcss = prop + "{" + r.stack + "}"
                 stack.push(atcss)
                 if (opt?.skipProps) {
@@ -157,7 +158,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 }
             }
         } else {
-            if (opt?.skipProps && opt.skipProps(prop, val)) {
+            if (opt?.skipProps && opt.skipProps(prop, val, dept)) {
                 if (!((classname as any) in skiped)) skiped[classname as string] = []
                 skiped[classname as string].push(prop)
                 continue
@@ -177,7 +178,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                         }
                     }
                     let _css = { [prop]: val[media] }
-                    let r: any = style(_css, classname, opt)
+                    let r: any = style(_css, classname, opt, dept)
                     let _style = r.stack
                     let mediakey = `@media (min-width: ${breakpoint}px)`
                     medias[mediakey] = medias[mediakey] ? medias[mediakey] + _style : _style
@@ -190,7 +191,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 }
             } else {
                 if (opt?.getProps) {
-                    let _props: any = opt.getProps(prop, val, _css)
+                    let _props: any = opt.getProps(prop, val, _css, dept)
                     if (_props) {
                         let r: any = style(_props, classname, {
                             ...opt,
@@ -212,14 +213,14 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                         let r: any = style(_props, classname, {
                             ...opt,
                             aliases: undefined
-                        })
+                        }, dept)
                         r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
                         stack[0] += r.stack
                         continue;
                     }
                 }
                 if (opt?.getValue) {
-                    val = opt.getValue(prop, val, _css)
+                    val = opt.getValue(prop, val, _css, dept)
                 }
                 let p = cssPrefix(prop, val)
                 stack[0] += `${p.prop}:${p.value};`

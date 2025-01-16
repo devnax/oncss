@@ -63,15 +63,15 @@ The `css` function can be customized through an options object:
 
 ### Available Properties
 
-| Property      | Type       | Description                                |
-| ------------- | ---------- | ------------------------------------------ |
-| `classPrefix` | `string`   | Adds a prefix to generated class names.    |
-| `breakpoints` | `object`   | Custom breakpoints for responsive designs. |
-| `aliases`     | `object`   | Custom shorthand properties for CSS rules. |
-| `injectStyle` | `boolean`  | Controls whether styles are auto-injected. |
-| `skipProps`   | `function` | Filters out unwanted properties.           |
-| `getValue`    | `function` | Transforms property values dynamically.    |
-| `getProps`    | `function` | Customizes specific property handling.     |
+| Property      | Type       | Description                                                                                       |
+| ------------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| `classPrefix` | `string`   | Adds a prefix to generated class names.                                                           |
+| `breakpoints` | `object`   | Custom breakpoints for responsive designs.                                                        |
+| `aliases`     | `object`   | Custom shorthand properties for CSS rules.                                                        |
+| `injectStyle` | `boolean`  | Controls whether styles are auto-injected.                                                        |
+| `skipProps`   | `function` | Filters out unwanted properties. Receives `prop`, `value`, and `dept` as arguments.               |
+| `getValue`    | `function` | Transforms property values dynamically. Receives `value`, `prop`, `css`, and `dept` as arguments. |
+| `getProps`    | `function` | Customizes specific property handling. Receives `prop`, `value`, `css`, and `dept` as arguments.  |
 
 ### Example with Options
 
