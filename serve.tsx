@@ -36,7 +36,9 @@ const App = () => {
     getValue: (p: any, v: any, _c: any,) => {
       return v
     },
-    skipProps: (p: any, v: any) => {
+    skipProps: (p: any, v: any, dept) => {
+      console.log(dept, p);
+
       return false
     }
   }
@@ -52,47 +54,16 @@ const App = () => {
       xl: "yellow",
     },
     "&:hover": {
-      background: "yellow"
+      background: "yellow",
+      "& a": {
+        color: "red"
+      }
     },
   }, _options)
 
-  const animdash = "dash"
-  const animrotate = "animrotate"
-
-  const c = css({
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    "& svg[class='circle-progress-svg']": {
-      zIndex: 1,
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      [`@keyframes ${animrotate}`]: {
-        "100%": {
-          transform: "rotate(360deg)"
-        }
-      },
-      "& circle.circle-progress-thumb": {
-        fill: "none",
-        strokeLinecap: "round",
-        [`@keyframes ${animdash}`]: {
-          "0%": { strokeDasharray: "1, 150", strokeDashoffset: 0 },
-          "50%": { strokeDasharray: "90, 150", strokeDashoffset: -35 },
-          "100%": { strokeDasharray: "90, 150", strokeDashoffset: -124 }
-        }
-      },
-      "& .circle-progress-track": {
-        fill: "none",
-      }
-    },
-    position: "relative"
-  })
 
   return (
-    <div className={cls.classname}>
+    <div>
       wellcome
       <button onClick={() => setCount(Math.random())}>up</button>
     </div>

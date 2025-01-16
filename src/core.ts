@@ -1,19 +1,9 @@
 import { CSSOptionProps, CSSFactoryType, CSSProps } from './types';
-
+import youid from 'youid';
 const _global: any = typeof window !== 'undefined' ? window : global;
 _global.Factory = _global.Factory || new Map<string, CSSFactoryType>();
 export const CSSFactory = _global.Factory as Map<string, CSSFactoryType>
 
-export const uid = (str: string) => {
-    var hash = 0, len = str.length;
-    for (var i = 0; i < len; i) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
-    }
-    let id = hash.toString(32).slice(-10).replace(/-/g, "");
-    if (/^\d/.test(id.charAt(0))) id = 'c' + id;
-    return id;
-}
 
 const number_val_props = [
     "fontWeight",
@@ -95,7 +85,7 @@ export const cssPrefix = (prop: string, value: string): { prop: string, value: s
     return { prop: _prop, value: _value };
 };
 
-export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 0) => {
+export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 1) => {
     let cachekey
     let classname = cls
     if (!cls) {
@@ -105,7 +95,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             has.cache = true
             return has
         }
-        classname = (opt?.classPrefix || "") + uid(cachekey)
+        classname = `${opt?.classPrefix || ""}x${youid(cachekey)}`
     } else if (typeof cls !== 'string') {
         throw new Error(`Invalid class name: ${cls}`)
     }
@@ -113,14 +103,12 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     let stack: any = [`${classname}{`]
     let medias: any = {}
     let skiped: any = {}
-    dept += 1
-
     for (let prop in _css) {
         let val = (_css as any)[prop]
         let firstChar = prop.charAt(0)
         if (firstChar === '&') {
             let ncls = prop.replace(/&/g, classname as string)
-            const r: any = style(val, ncls, opt, dept)
+            const r: any = style(val, ncls, opt, ++dept)
             if (opt?.skipProps) {
                 skiped = {
                     ...skiped,
@@ -132,7 +120,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
                 let _css = ''
                 for (let selector in val) {
-                    let r: any = style(val[selector], selector, opt, dept)
+                    let r: any = style(val[selector], selector, opt, ++dept)
                     _css += r.stack
                     if (opt?.skipProps) {
                         skiped = {
@@ -147,7 +135,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                     stack.push(_css)
                 }
             } else {
-                let r: any = style(val, classname, opt, dept)
+                let r: any = style(val, classname, opt, ++dept)
                 const atcss = prop + "{" + r.stack + "}"
                 stack.push(atcss)
                 if (opt?.skipProps) {
