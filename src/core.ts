@@ -89,7 +89,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     let cachekey
     let classname = cls
     if (!cls) {
-        cachekey = JSON.stringify(_css)
+        cachekey = JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
         const has = CSSFactory.get(cachekey)
         if (has) {
             has.cache = true
@@ -149,6 +149,9 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             if (opt?.skipProps && opt.skipProps(prop, val, dept)) {
                 if (!((classname as any) in skiped)) skiped[classname as string] = []
                 skiped[classname as string].push(prop)
+                continue
+            }
+            if (typeof val === 'function' || Array.isArray(val)) {
                 continue
             }
             if (typeof val === 'object') {

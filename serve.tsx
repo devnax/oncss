@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import css, { OptionAliases, CSSFactory, CSSOptionProps } from './src'
 
-type Breakpoints = "xs" | "sm" | "md" | "lg"
 type Aliases = {
   m: string;
   radius: number;
@@ -36,11 +35,6 @@ const App = () => {
     getValue: (p: any, v: any, _c: any,) => {
       return v
     },
-    skipProps: (p: any, v: any, dept) => {
-      console.log(dept, p);
-
-      return false
-    }
   }
 
   const cls = css({
@@ -61,6 +55,46 @@ const App = () => {
     },
 
   }, _options)
+
+  const obj = {
+    name: "Test",
+    age: 25,
+    greet: function () {
+      return "Hello!";
+    },
+    nested: {
+      value: 42,
+      compute: function () {
+        return this.value * 2;
+      },
+    },
+  };
+
+  let length = 10000
+
+  // Plain JSON.stringify
+  console.time("Plain stringify");
+  for (let i = 0; i < length; i++) {
+    css({
+      "&:hover": {
+        background: "yellow",
+        "& a": {
+          color: "red"
+        }
+      },
+      height: 200,
+      radius: 20,
+      background: {
+        xs: "orange",
+        sm: "red",
+        md: "blue",
+        lg: "green",
+        xl: "yellow",
+      },
+
+    }, _options)
+  }
+  console.timeEnd("Plain stringify");
 
 
   return (
