@@ -1,6 +1,6 @@
 {
    "name": "oncss",
-   "version": "1.1.8",
+   "version": "1.1.9",
    "description": "A CSS framework for modern web development.",
    "scripts": {
       "start": "makepack serve -p 4000",
@@ -32,7 +32,7 @@
       "url": "https://github.com/yourusername/oncss/issues"
    },
    "dependencies": {
-      "youid": "^1.0.3"
+      "youid": "^1.0.4"
    },
    "exports": {
       ".": {
