@@ -96,9 +96,8 @@ const App = () => {
   }
   console.timeEnd("Plain stringify");
 
-
   return (
-    <div>
+    <div className={cls.classname}>
       wellcome
       <button onClick={() => setCount(Math.random())}>up</button>
     </div>

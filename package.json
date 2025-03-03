@@ -1,16 +1,19 @@
 {
    "name": "oncss",
-   "version": "1.1.9",
+   "version": "1.1.14",
    "description": "A CSS framework for modern web development.",
+   "main": "./cjs/index.js",
+   "module": "./index.js",
+   "types": "./types/index.d.ts",
    "scripts": {
-      "start": "makepack serve -p 4000",
-      "pack": "makepack pack",
-      "publish:pack": "makepack pack -p"
+      "start": "makepack start",
+      "build": "makepack build",
+      "build:publish": "makepack publish"
    },
    "devDependencies": {
       "@types/react": "^19.0.2",
       "@types/react-dom": "^19.0.2",
-      "makepack": "^1.4.0",
+      "makepack": "^1.5.5",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
       "typescript": "^4.4.2"
@@ -32,20 +35,19 @@
       "url": "https://github.com/yourusername/oncss/issues"
    },
    "dependencies": {
-      "youid": "^1.0.4"
+      "youid": "^1.0.5"
    },
    "exports": {
       ".": {
          "types": "./types/index.d.ts",
-         "import": "./esm/index.js",
+         "import": "./index.js",
          "require": "./cjs/index.js"
       },
+      "./types/*": "./types/*.d.ts",
+      "./cjs/*": "./cjs/*.js",
       "./*": {
-         "types": "./types/*.d.ts",
-         "import": "./esm/*.js",
+         "import": "./*.js",
          "require": "./cjs/*.js"
-      },
-      "./esm/*": "./esm/*.js",
-      "./esm/*.js": "./esm/*.js"
+      }
    }
 }

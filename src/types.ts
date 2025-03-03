@@ -66,4 +66,5 @@ export type CSSFactoryType = {
    skiped: string[];
    getStyleTag: () => HTMLStyleElement | null;
    deleteStyle: () => void;
+   toString: () => string;
 }

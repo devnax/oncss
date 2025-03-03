@@ -241,8 +241,8 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 const tag = document?.querySelector(`[data-oncss="${classname}"]`)
                 tag && tag.remove()
             },
+            toString: () => classname as string
         }
-        r.toString = () => classname as string
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle || true
         if (inject && typeof window !== 'undefined') {
