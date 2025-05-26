@@ -1,22 +1,23 @@
 {
    "name": "oncss",
-   "version": "1.1.15",
+   "version": "1.1.16",
    "description": "A CSS framework for modern web development.",
-   "main": "./cjs/index.js",
-   "module": "./index.js",
-   "types": "./types/index.d.ts",
+   "main": "./index.cjs",
+   "module": "./index.mjs",
+   "types": "./index.d.ts",
+   "type": "module",
    "scripts": {
       "start": "makepack start",
       "build": "makepack build",
-      "build:publish": "makepack publish"
+      "release": "makepack release"
    },
    "devDependencies": {
       "@types/react": "^19.0.2",
       "@types/react-dom": "^19.0.2",
-      "makepack": "^1.5.24",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
-      "typescript": "^4.4.2"
+      "typescript": "^4.4.2",
+      "makepack": "^1.6.4"
    },
    "keywords": [
       "css",
@@ -35,6 +36,6 @@
       "url": "https://github.com/yourusername/oncss/issues"
    },
    "dependencies": {
-      "youid": "^1.0.6"
+      "youid": "^1.0.9"
    }
 }
