@@ -1,9 +1,9 @@
 {
    "name": "oncss",
-   "version": "1.1.16",
+   "version": "1.1.17",
    "description": "A CSS framework for modern web development.",
-   "main": "./index.cjs",
-   "module": "./index.mjs",
+   "main": "./cjs/index.js",
+   "module": "./index.js",
    "types": "./index.d.ts",
    "type": "module",
    "scripts": {
@@ -14,10 +14,10 @@
    "devDependencies": {
       "@types/react": "^19.0.2",
       "@types/react-dom": "^19.0.2",
+      "makepack": "^1.6.8",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
-      "typescript": "^4.4.2",
-      "makepack": "^1.6.4"
+      "typescript": "^4.4.2"
    },
    "keywords": [
       "css",
@@ -35,7 +35,31 @@
    "bugs": {
       "url": "https://github.com/yourusername/oncss/issues"
    },
+   "sideEffects": false,
+   "exports": {
+      ".": {
+         "require": {
+            "types": "./index.d.ts",
+            "default": "./cjs/index.js"
+         },
+         "import": {
+            "types": "./index.d.ts",
+            "default": "./index.js"
+         }
+      },
+      "./*": {
+         "require": {
+            "types": "./*.d.ts",
+            "default": "./cjs/*.js"
+         },
+         "import": {
+            "types": "./*.d.ts",
+            "default": "./*.js"
+         }
+      },
+      "./cjs": null
+   },
    "dependencies": {
-      "youid": "^1.0.9"
+      "youid": "^1.0.10"
    }
 }
