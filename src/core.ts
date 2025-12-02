@@ -236,9 +236,9 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             css: stack,
             cssraw: _css,
             skiped,
-            getStyleTag: () => document?.querySelector(`[data-oncss="${classname}"]`) as HTMLStyleElement | null,
+            getStyleTag: () => document?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
             deleteStyle: () => {
-                const tag = document?.querySelector(`[data-oncss="${classname}"]`)
+                const tag = document?.querySelector(`[data-href="${classname}"]`)
                 tag && tag.remove()
             },
             toString: () => classname as string
@@ -246,10 +246,10 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle ?? true
         if (inject && typeof window !== 'undefined') {
-            if (!document.querySelector(`[data-oncss="${classname}"]`)) {
+            if (!document.querySelector(`[data-href="${classname}"]`)) {
                 const tag = document.createElement("style");
                 tag.innerHTML = r.css
-                tag.setAttribute(`data-oncss`, classname as string)
+                tag.setAttribute(`data-href`, classname as string)
                 document.head.append(tag)
             }
         }

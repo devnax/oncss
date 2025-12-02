@@ -261,7 +261,7 @@ const App = () => (
 const html = ReactDOMServer.renderToString(<App />);
 
 let styles: any = Array.from(CSSFactory.values()).map((style) => {
-  return `<style data-oncss="${style.classname}">${style.css}</style>`
+  return `<style data-href="${style.classname}">${style.css}</style>`
 });
 
 // Inject the styles into the HTML
