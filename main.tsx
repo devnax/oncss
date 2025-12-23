@@ -24,6 +24,7 @@ let aliases: OptionAliases<Aliases> = {
 const App = () => {
   const [count, setCount] = React.useState(0)
   const _options = {
+    selector: "#",
     aliases,
     breakpoints: {
       xs: 0,
@@ -97,7 +98,7 @@ const App = () => {
   console.timeEnd("Plain stringify");
 
   return (
-    <div className={cls.classname}>
+    <div id={cls.classname}>
       wellcome
       <button onClick={() => setCount(Math.random())}>up</button>
     </div>

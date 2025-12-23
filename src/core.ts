@@ -228,10 +228,12 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     }
 
     if (cachekey) {
-        stack = stack.replace(new RegExp(classname as string, 'g'), `.${classname}`)
+        let selector = opt?.selector ?? "."
+        stack = stack.replace(new RegExp(classname as string, 'g'), `${selector}${classname}`)
         const r = {
             cache: false,
             cachekey,
+            selector,
             classname: classname as string,
             css: stack,
             cssraw: _css,
@@ -240,8 +242,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             deleteStyle: () => {
                 const tag = document?.querySelector(`[data-href="${classname}"]`)
                 tag && tag.remove()
-            },
-            toString: () => classname as string
+            }
         }
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle ?? true
