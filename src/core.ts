@@ -85,11 +85,40 @@ export const cssPrefix = (prop: string, value: string): { prop: string, value: s
     return { prop: _prop, value: _value };
 };
 
+
+const resolveStyleContainer = (input?: Document | HTMLElement): { document: Document; container: HTMLElement } => {
+    // Default → current document
+    if (!input) {
+        return {
+            document,
+            container: document.head,
+        };
+    }
+
+    // If input is a Document (works across iframes)
+    if ("nodeType" in input && input.nodeType === 9) {
+        return {
+            document: input as Document,
+            container: (input as Document).head || input.getElementsByTagName("head")[0],
+        };
+    }
+
+    // If input is an HTMLElement → use its owner document
+    if ("ownerDocument" in input && input instanceof HTMLElement) {
+        return {
+            document: input.ownerDocument,
+            container: input,
+        };
+    }
+
+    throw new Error("Invalid input: must be Document or HTMLElement");
+}
+
+
+
 export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 1) => {
     let cachekey
     let classname = cls
-
-
 
     if (!cls) {
         cachekey = JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
@@ -231,11 +260,9 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     }
 
     if (cachekey) {
-        const _con = opt?.container ?? document
-        const _document = _con instanceof Document ? _con : _con?.ownerDocument || document
-        const _container = _con instanceof Document ? _con.head : _con as HTMLElement
-        const selector = opt?.selector ?? "."
+        const d = resolveStyleContainer(opt?.container);
 
+        const selector = opt?.selector ?? "."
         stack = stack.replace(new RegExp(classname as string, 'g'), `${selector}${classname}`)
         const r = {
             cache: false,
@@ -245,9 +272,9 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             css: stack,
             cssraw: _css,
             skiped,
-            getStyleTag: () => _container?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
+            getStyleTag: () => d.container?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
             deleteStyle: () => {
-                const tag = _container?.querySelector(`[data-href="${classname}"]`)
+                const tag = d.container?.querySelector(`[data-href="${classname}"]`)
                 tag && tag.remove()
             }
         }
@@ -255,12 +282,13 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle ?? true
 
-        if (inject && typeof _document !== 'undefined') {
-            if (!_container.querySelector(`[data-href="${classname}"]`)) {
-                const tag = _document.createElement("style");
+        if (inject && typeof d.document !== 'undefined') {
+            if (!d.container.querySelector(`[data-href="${classname}"]`)) {
+                const tag = d.document.createElement("style");
                 tag.innerHTML = r.css
                 tag.setAttribute(`data-href`, classname as string)
-                _container.appendChild(tag);
+
+                d.container.appendChild(tag);
             }
         }
         return r
