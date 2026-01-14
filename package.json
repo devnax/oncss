@@ -1,9 +1,9 @@
 {
    "name": "oncss",
-   "version": "1.2.6",
+   "version": "1.2.7",
    "description": "A CSS framework for modern web development.",
-   "main": "./index.js",
-   "module": "./index.mjs",
+   "main": "./index.cjs",
+   "module": "./index.js",
    "types": "./index.d.ts",
    "type": "module",
    "scripts": {
@@ -35,15 +35,7 @@
    "bugs": {
       "url": "https://github.com/yourusername/oncss/issues"
    },
-   "sideEffects": false,
    "dependencies": {
       "youid": "^1.0.13"
-   },
-   "exports": {
-      ".": {
-         "import": "./index.mjs",
-         "require": "./index.js",
-         "types": "./index.d.ts"
-      }
    }
 }
