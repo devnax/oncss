@@ -257,8 +257,6 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
 
         if (inject && typeof _document !== 'undefined') {
             if (!_container.querySelector(`[data-href="${classname}"]`)) {
-                console.log("asd");
-
                 const tag = _document.createElement("style");
                 tag.innerHTML = r.css
                 tag.setAttribute(`data-href`, classname as string)
