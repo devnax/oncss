@@ -88,6 +88,9 @@ export const cssPrefix = (prop: string, value: string): { prop: string, value: s
 export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 1) => {
     let cachekey
     let classname = cls
+
+
+
     if (!cls) {
         cachekey = JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
         const has = CSSFactory.get(cachekey)
@@ -228,7 +231,11 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     }
 
     if (cachekey) {
-        let selector = opt?.selector ?? "."
+        const _con = opt?.container ?? document
+        const _document = _con instanceof Document ? _con : _con?.ownerDocument || document
+        const _container = _con instanceof Document ? _con.head : _con as HTMLElement
+        const selector = opt?.selector ?? "."
+
         stack = stack.replace(new RegExp(classname as string, 'g'), `${selector}${classname}`)
         const r = {
             cache: false,
@@ -238,20 +245,24 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             css: stack,
             cssraw: _css,
             skiped,
-            getStyleTag: () => document?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
+            getStyleTag: () => _container?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
             deleteStyle: () => {
-                const tag = document?.querySelector(`[data-href="${classname}"]`)
+                const tag = _container?.querySelector(`[data-href="${classname}"]`)
                 tag && tag.remove()
             }
         }
+
         CSSFactory.set(cachekey, r)
         let inject = opt?.injectStyle ?? true
-        if (inject && typeof window !== 'undefined') {
-            if (!document.querySelector(`[data-href="${classname}"]`)) {
-                const tag = document.createElement("style");
+
+        if (inject && typeof _document !== 'undefined') {
+            if (!_container.querySelector(`[data-href="${classname}"]`)) {
+                console.log("asd");
+
+                const tag = _document.createElement("style");
                 tag.innerHTML = r.css
                 tag.setAttribute(`data-href`, classname as string)
-                document.head.append(tag)
+                _container.appendChild(tag);
             }
         }
         return r

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import css, { OptionAliases, CSSFactory, CSSOptionProps } from './src'
+import { css, OptionAliases, CSSFactory, CSSOptionProps } from './src'
 
 type Aliases = {
   m: string;
