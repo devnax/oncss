@@ -54,6 +54,7 @@ export interface CSSOptionProps<Aliases, BreakpointKeys extends string> {
    injectStyle?: boolean;
    container?: Document | HTMLElement;
    selector?: string;
+   cacheId?: string;
    skipProps?: (prop: string, value: string | number, dept: number) => boolean | void;
    getValue?: (value: string | number, prop: string, css: CSSProps<Aliases, BreakpointKeys>, dept: number) => (string | number);
    getProps?: (prop: string, value: string | number, css: CSSProps<Aliases, BreakpointKeys>, dept: number) => CSSProps<Aliases, BreakpointKeys> | void;
@@ -66,7 +67,9 @@ export type CSSFactoryType = {
    cssraw: CSSProps<any, any>;
    cache: boolean;
    skiped: string[];
+   cacheId: string;
    getStyleTag: () => HTMLStyleElement | null;
    deleteStyle: () => void;
-   toString: () => string;
+   inject: () => HTMLStyleElement;
+   refresh: () => HTMLStyleElement;
 }

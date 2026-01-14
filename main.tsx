@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { createRoot } from 'react-dom/client';
-import { css, OptionAliases, CSSFactory, CSSOptionProps } from './src'
+import { css, OptionAliases, CSSOptionProps } from './src'
 import { useEffect, useRef, useState, createContext } from "react";
 import { createPortal } from "react-dom";
 

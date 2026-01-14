@@ -1,8 +1,44 @@
 import { CSSOptionProps, CSSFactoryType, CSSProps } from './types';
 import youid from 'youid';
-const _global: any = typeof window !== 'undefined' ? window : global;
-_global.Factory = _global.Factory || new Map<string, CSSFactoryType>();
-export const CSSFactory = _global.Factory as Map<string, CSSFactoryType>
+// const _global: any = typeof window !== 'undefined' ? window : global;
+// _global.Factory = _global.Factory || new Map<string, CSSFactoryType>();
+// export const CSSFactory = _global.Factory as Map<string, CSSFactoryType>
+
+const caches = new Map<string, Map<string, CSSFactoryType>>()
+
+export const ONCSS_CACHE = {
+    set(cacheId: string, cachekey: string, value: CSSFactoryType) {
+        let cache = caches.get(cacheId)
+        if (!cache) {
+            cache = new Map()
+            caches.set(cacheId, cache)
+        }
+        cache.set(cachekey, value)
+    },
+    get(cacheId: string, cachekey: string) {
+        let cache = caches.get(cacheId)
+        if (cache) {
+            return cache.get(cachekey)
+        }
+    },
+    has(cacheId: string, cachekey: string) {
+        let cache = caches.get(cacheId)
+        if (cache) {
+            return cache.has(cachekey)
+        }
+        return false
+    },
+    delete(cacheId: string, cachekey: string,) {
+        let cache = caches.get(cacheId)
+        if (cache) {
+            cache.delete(cachekey)
+        }
+    },
+    caches() {
+        return caches
+    }
+}
+
 
 
 const number_val_props = [
@@ -114,15 +150,14 @@ const resolveStyleContainer = (input?: Document | HTMLElement): { document: Docu
     throw new Error("Invalid input: must be Document or HTMLElement");
 }
 
-
-
 export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 1) => {
     let cachekey
     let classname = cls
+    const cacheId = opt?.cacheId || "global"
 
     if (!cls) {
         cachekey = JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
-        const has = CSSFactory.get(cachekey)
+        const has = ONCSS_CACHE.get(cacheId, cachekey)
         if (has) {
             has.cache = true
             return has
@@ -272,24 +307,32 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
             css: stack,
             cssraw: _css,
             skiped,
-            getStyleTag: () => d.container?.querySelector(`[data-href="${classname}"]`) as HTMLStyleElement | null,
+            cacheId,
+            getStyleTag: () => d.container?.querySelector(`style[data-href="${classname}"]`) as HTMLStyleElement | null,
             deleteStyle: () => {
-                const tag = d.container?.querySelector(`[data-href="${classname}"]`)
+                const tag = r.getStyleTag()
                 tag && tag.remove()
+            },
+            inject: () => {
+                const tag = r.getStyleTag() || d.document.createElement("style");
+                if (!tag.innerHTML) {
+                    tag.innerHTML = r.css
+                    tag.setAttribute(`data-href`, classname as string)
+                    d.container.appendChild(tag);
+                }
+                return tag
+            },
+            refresh: () => {
+                r.deleteStyle()
+                return r.inject()
             }
         }
 
-        CSSFactory.set(cachekey, r)
+        ONCSS_CACHE.set(cacheId, cachekey, r)
+
         let inject = opt?.injectStyle ?? true
-
         if (inject && typeof d.document !== 'undefined') {
-            if (!d.container.querySelector(`[data-href="${classname}"]`)) {
-                const tag = d.document.createElement("style");
-                tag.innerHTML = r.css
-                tag.setAttribute(`data-href`, classname as string)
-
-                d.container.appendChild(tag);
-            }
+            r.inject()
         }
         return r
     }
