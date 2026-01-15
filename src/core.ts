@@ -122,7 +122,13 @@ export const cssPrefix = (prop: string, value: string): { prop: string, value: s
 };
 
 
-const resolveStyleContainer = (input?: Document | HTMLElement): { document: Document; container: HTMLElement } => {
+const resolveStyleContainer = (input?: Document | HTMLElement): { document?: Document; container?: HTMLElement } => {
+    if (typeof window === 'undefined') {
+        return {
+            document: undefined,
+            container: undefined
+        }
+    }
     // Default → current document
     if (!input) {
         return {
@@ -314,13 +320,13 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
                 tag && tag.remove()
             },
             inject: () => {
-                const tag = r.getStyleTag() || d.document.createElement("style");
-                if (!tag.innerHTML) {
+                const tag = r.getStyleTag() || d.document?.createElement("style");
+                if (tag && !tag?.innerHTML) {
                     tag.innerHTML = r.css
                     tag.setAttribute(`data-href`, classname as string)
-                    d.container.appendChild(tag);
+                    d.container?.appendChild(tag);
                 }
-                return tag
+                return tag as HTMLStyleElement
             },
             refresh: () => {
                 r.deleteStyle()
@@ -331,7 +337,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
         ONCSS_CACHE.set(cacheId, cachekey, r)
 
         let inject = opt?.injectStyle ?? true
-        if (inject && typeof d.document !== 'undefined') {
+        if (inject && d.document) {
             r.inject()
         }
         return r
