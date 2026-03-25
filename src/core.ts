@@ -162,7 +162,7 @@ export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Ali
     const cacheId = opt?.cacheId || "global"
 
     if (!cls) {
-        cachekey = JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
+        cachekey = (opt?.selector ?? "") + JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
         const has = ONCSS_CACHE.get(cacheId, cachekey)
         if (has) {
             has.cache = true

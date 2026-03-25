@@ -1,6 +1,6 @@
 {
    "name": "oncss",
-   "version": "1.2.11",
+   "version": "1.2.12",
    "description": "A CSS framework for modern web development.",
    "main": "./index.cjs",
    "module": "./index.js",
