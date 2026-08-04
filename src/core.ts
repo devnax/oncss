@@ -1,346 +1,398 @@
-import { CSSOptionProps, CSSFactoryType, CSSProps } from './types';
-import youid from 'youid';
+import { CSSOptionProps, CSSFactoryType, CSSProps } from "./types";
+import youid from "youid";
 // const _global: any = typeof window !== 'undefined' ? window : global;
 // _global.Factory = _global.Factory || new Map<string, CSSFactoryType>();
 // export const CSSFactory = _global.Factory as Map<string, CSSFactoryType>
 
-const caches = new Map<string, Map<string, CSSFactoryType>>()
+const caches = new Map<string, Map<string, CSSFactoryType>>();
 
 export const ONCSS_CACHE = {
-    set(cacheId: string, cachekey: string, value: CSSFactoryType) {
-        let cache = caches.get(cacheId)
-        if (!cache) {
-            cache = new Map()
-            caches.set(cacheId, cache)
-        }
-        cache.set(cachekey, value)
-    },
-    get(cacheId: string, cachekey: string) {
-        let cache = caches.get(cacheId)
-        if (cache) {
-            return cache.get(cachekey)
-        }
-    },
-    has(cacheId: string, cachekey: string) {
-        let cache = caches.get(cacheId)
-        if (cache) {
-            return cache.has(cachekey)
-        }
-        return false
-    },
-    delete(cacheId: string, cachekey: string,) {
-        let cache = caches.get(cacheId)
-        if (cache) {
-            cache.delete(cachekey)
-        }
-    },
-    caches() {
-        return caches
+  set(cacheId: string, cachekey: string, value: CSSFactoryType) {
+    let cache = caches.get(cacheId);
+    if (!cache) {
+      cache = new Map();
+      caches.set(cacheId, cache);
     }
-}
-
-
+    cache.set(cachekey, value);
+  },
+  get(cacheId: string, cachekey: string) {
+    let cache = caches.get(cacheId);
+    if (cache) {
+      return cache.get(cachekey);
+    }
+  },
+  has(cacheId: string, cachekey: string) {
+    let cache = caches.get(cacheId);
+    if (cache) {
+      return cache.has(cachekey);
+    }
+    return false;
+  },
+  delete(cacheId: string, cachekey: string) {
+    let cache = caches.get(cacheId);
+    if (cache) {
+      cache.delete(cachekey);
+    }
+  },
+  caches() {
+    return caches;
+  },
+};
 
 const number_val_props = [
-    "fontWeight",
-    "font-weight",
-    "lineHeight",
-    "line-height",
-    "opacity",
-    "zIndex",
-    "z-index",
-    "flex",
-    "order",
-    "flexGrow",
-    "flex-grow",
-    "flexShrink",
-    "flex-shrink",
-    "flexBasis",
-    "flex-basis",
-    "columns",
-    "perspective",
-    "stroke-dashoffset"
-]
+  "fontWeight",
+  "font-weight",
+  "lineHeight",
+  "line-height",
+  "opacity",
+  "zIndex",
+  "z-index",
+  "flex",
+  "order",
+  "flexGrow",
+  "flex-grow",
+  "flexShrink",
+  "flex-shrink",
+  "flexBasis",
+  "flex-basis",
+  "columns",
+  "perspective",
+  "stroke-dashoffset",
+];
 
-export const formatCSSProp = (prop: string) => prop.split(/(?=[A-Z])/).join("-").toLowerCase();
-export const formatCSSValue = (prop: string, val: any) => typeof val === 'number' && !number_val_props.includes(prop) ? `${val}px` : val
+export const formatCSSProp = (prop: string) =>
+  prop
+    .split(/(?=[A-Z])/)
+    .join("-")
+    .toLowerCase();
+export const formatCSSValue = (prop: string, val: any) =>
+  typeof val === "number" && !number_val_props.includes(prop)
+    ? `${val}px`
+    : val;
 
-const PREFIXES = ['webkit', 'moz', 'ms', 'o'];
+const PREFIXES = ["webkit", "moz", "ms", "o"];
 let _declaration: CSSStyleDeclaration;
 const PREFIXCACHE = new Map();
 
-export const cssPrefix = (prop: string, value: string): { prop: string, value: string } => {
-    value = formatCSSValue(prop, value);
-    prop = formatCSSProp(prop);
+export const cssPrefix = (
+  prop: string,
+  value: string,
+): { prop: string; value: string } => {
+  value = formatCSSValue(prop, value);
+  prop = formatCSSProp(prop);
 
-    if (typeof window === 'undefined') {
-        return { prop, value };
+  if (typeof window === "undefined") {
+    return { prop, value };
+  }
+
+  const declaration =
+    _declaration || (_declaration = document.createElement("div").style);
+  value = value?.toString();
+
+  // Check if the property and value work as is
+  if (
+    (declaration.setProperty(prop, value),
+    declaration.getPropertyValue(prop) === value)
+  ) {
+    return { prop, value };
+  }
+
+  // Check cached property and value prefix
+  const cached = PREFIXCACHE.get(prop);
+  if (cached) {
+    return { prop: cached._prop, value: `${cached._vprefix}${value}` };
+  }
+
+  let _prop = prop;
+  let _value = value;
+  let _vprefix = "";
+
+  // Try property prefixes
+  const camelCaseProp = prop.includes("-")
+    ? prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+    : prop;
+  for (const prefix of PREFIXES) {
+    if (declaration[`${prefix}${camelCaseProp}` as any] !== undefined) {
+      _prop = `-${prefix}-${prop}`;
+      break;
     }
+  }
 
-    const declaration = _declaration || (_declaration = document.createElement("div").style);
-    value = value?.toString();
-
-    // Check if the property and value work as is
-    if (declaration.setProperty(prop, value), declaration.getPropertyValue(prop) === value) {
-        return { prop, value };
-    }
-
-    // Check cached property and value prefix
-    const cached = PREFIXCACHE.get(prop);
-    if (cached) {
-        return { prop: cached._prop, value: `${cached._vprefix}${value}` };
-    }
-
-    let _prop = prop;
-    let _value = value;
-    let _vprefix = '';
-
-    // Try property prefixes
-    const camelCaseProp = prop.includes('-') ? prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase()) : prop;
+  // Check if prefixed property works with the value
+  declaration.setProperty(_prop, value);
+  if (!declaration.getPropertyValue(_prop)) {
     for (const prefix of PREFIXES) {
-        if (declaration[`${prefix}${camelCaseProp}` as any] !== undefined) {
-            _prop = `-${prefix}-${prop}`;
-            break;
-        }
+      const prefixedValue = `-${prefix}-${value}`;
+      if (
+        (declaration.setProperty(_prop, prefixedValue),
+        declaration.getPropertyValue(_prop) === prefixedValue)
+      ) {
+        _value = prefixedValue;
+        _vprefix = `-${prefix}-`;
+        break;
+      }
     }
+  }
 
-    // Check if prefixed property works with the value
-    declaration.setProperty(_prop, value);
-    if (!declaration.getPropertyValue(_prop)) {
-        for (const prefix of PREFIXES) {
-            const prefixedValue = `-${prefix}-${value}`;
-            if (declaration.setProperty(_prop, prefixedValue), declaration.getPropertyValue(_prop) === prefixedValue) {
-                _value = prefixedValue;
-                _vprefix = `-${prefix}-`;
-                break;
-            }
-        }
-    }
-
-    PREFIXCACHE.set(prop, { _prop, _vprefix });
-    return { prop: _prop, value: _value };
+  PREFIXCACHE.set(prop, { _prop, _vprefix });
+  return { prop: _prop, value: _value };
 };
 
+const resolveStyleContainer = (
+  input?: Document | HTMLElement,
+): { document?: Document; container?: HTMLElement } => {
+  if (typeof window === "undefined") {
+    return {
+      document: undefined,
+      container: undefined,
+    };
+  }
+  // Default → current document
+  if (!input) {
+    return {
+      document,
+      container: document.head,
+    };
+  }
 
-const resolveStyleContainer = (input?: Document | HTMLElement): { document?: Document; container?: HTMLElement } => {
-    if (typeof window === 'undefined') {
-        return {
-            document: undefined,
-            container: undefined
+  // If input is a Document (works across iframes)
+  if ("nodeType" in input && input.nodeType === 9) {
+    return {
+      document: input as Document,
+      container:
+        (input as Document).head || input.getElementsByTagName("head")[0],
+    };
+  }
+
+  // If input is an HTMLElement → use its owner document
+  if ("ownerDocument" in input && input instanceof HTMLElement) {
+    return {
+      document: input.ownerDocument,
+      container: input,
+    };
+  }
+
+  throw new Error("Invalid input: must be Document or HTMLElement");
+};
+
+export const style = <Aliases, BreakpointKeys extends string>(
+  _css: CSSProps<Aliases, BreakpointKeys>,
+  cls?: string,
+  opt?: CSSOptionProps<Aliases, BreakpointKeys>,
+  dept = 1,
+) => {
+  let cachekey;
+  let classname = cls;
+  const cacheId = opt?.cacheId || "global";
+
+  if (!cls) {
+    cachekey =
+      (opt?.selector ?? "") +
+      JSON.stringify(_css, (_key, value) =>
+        typeof value === "function" ? value.toString() : value,
+      );
+    const has = ONCSS_CACHE.get(cacheId, cachekey);
+    if (has) {
+      has.cache = true;
+      return has;
+    }
+    classname = `${opt?.classPrefix || ""}x${youid(cachekey)}`;
+  } else if (typeof cls !== "string") {
+    throw new Error(`Invalid class name: ${cls}`);
+  }
+
+  let stack: any = [`${classname}{`];
+  let medias: any = {};
+  let skiped: any = {};
+  for (let prop in _css) {
+    let val = (_css as any)[prop];
+    let firstChar = prop.charAt(0);
+    if (firstChar === "&") {
+      let ncls = prop.replace(/&/g, classname as string);
+      const r: any = style(val, ncls, opt, dept + 1);
+      if (opt?.skipProps) {
+        skiped = {
+          ...skiped,
+          ...r.skiped,
+        };
+      }
+      stack.push(r.stack);
+    } else if (firstChar === "@") {
+      if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
+        let _css = "";
+        for (let selector in val) {
+          let r: any = style(val[selector], selector, opt, dept + 1);
+          _css += r.stack;
+          if (opt?.skipProps) {
+            skiped = {
+              ...skiped,
+              ...r.skiped,
+            };
+          }
         }
-    }
-    // Default → current document
-    if (!input) {
-        return {
-            document,
-            container: document.head,
-        };
-    }
-
-    // If input is a Document (works across iframes)
-    if ("nodeType" in input && input.nodeType === 9) {
-        return {
-            document: input as Document,
-            container: (input as Document).head || input.getElementsByTagName("head")[0],
-        };
-    }
-
-    // If input is an HTMLElement → use its owner document
-    if ("ownerDocument" in input && input instanceof HTMLElement) {
-        return {
-            document: input.ownerDocument,
-            container: input,
-        };
-    }
-
-    throw new Error("Invalid input: must be Document or HTMLElement");
-}
-
-export const style = <Aliases, BreakpointKeys extends string>(_css: CSSProps<Aliases, BreakpointKeys>, cls?: string, opt?: CSSOptionProps<Aliases, BreakpointKeys>, dept = 1) => {
-    let cachekey
-    let classname = cls
-    const cacheId = opt?.cacheId || "global"
-
-    if (!cls) {
-        cachekey = (opt?.selector ?? "") + JSON.stringify(_css, (_key, value) => typeof value === "function" ? value.toString() : value);
-        const has = ONCSS_CACHE.get(cacheId, cachekey)
-        if (has) {
-            has.cache = true
-            return has
-        }
-        classname = `${opt?.classPrefix || ""}x${youid(cachekey)}`
-    } else if (typeof cls !== 'string') {
-        throw new Error(`Invalid class name: ${cls}`)
-    }
-
-    let stack: any = [`${classname}{`]
-    let medias: any = {}
-    let skiped: any = {}
-    for (let prop in _css) {
-        let val = (_css as any)[prop]
-        let firstChar = prop.charAt(0)
-        if (firstChar === '&') {
-            let ncls = prop.replace(/&/g, classname as string)
-            const r: any = style(val, ncls, opt, dept + 1)
-            if (opt?.skipProps) {
-                skiped = {
-                    ...skiped,
-                    ...r.skiped
-                }
-            }
-            stack.push(r.stack)
-        } else if (firstChar === '@') {
-            if (prop.startsWith("@global") || prop.startsWith("@keyframes")) {
-                let _css = ''
-                for (let selector in val) {
-                    let r: any = style(val[selector], selector, opt, dept + 1)
-                    _css += r.stack
-                    if (opt?.skipProps) {
-                        skiped = {
-                            ...skiped,
-                            ...r.skiped
-                        }
-                    }
-                }
-                if (prop.startsWith("@keyframes")) {
-                    stack.push(`${prop}{${_css}}`)
-                } else {
-                    stack.push(_css)
-                }
-            } else {
-                let r: any = style(val, classname, opt, dept + 1)
-                const atcss = prop + "{" + r.stack + "}"
-                stack.push(atcss)
-                if (opt?.skipProps) {
-                    skiped = {
-                        ...skiped,
-                        ...r.skiped
-                    }
-                }
-            }
+        if (prop.startsWith("@keyframes")) {
+          stack.push(`${prop}{${_css}}`);
         } else {
-            if (opt?.skipProps && opt.skipProps(prop, val, dept)) {
-                if (!((classname as any) in skiped)) skiped[classname as string] = []
-                skiped[classname as string].push(prop)
-                continue
-            }
-            if (typeof val === 'function' || Array.isArray(val)) {
-                continue
-            }
-            if (typeof val === 'object') {
-                for (let media in val) {
-                    if (typeof val[media] === 'object' || typeof val[media] === 'function' || Array.isArray(val[media])) {
-                        throw new Error(`Invalid css value: ${val[media]}`);
-                    }
-                    let breakpoint = media
-                    let isNumber = !isNaN(parseInt(breakpoint))
-                    if (!isNumber) {
-                        if (opt?.breakpoints && !isNaN(parseInt((opt.breakpoints as any)[media]))) {
-                            breakpoint = opt.breakpoints[media as BreakpointKeys].toString()
-                        } else {
-                            throw new Error(`Invalid breakpoint prop: ${media}`);
-                        }
-                    }
-                    let _css = { [prop]: val[media] }
-                    let r: any = style(_css, classname, opt, dept)
-                    let _style = r.stack
-                    let mediakey = `@media (min-width: ${breakpoint}px)`
-                    medias[mediakey] = medias[mediakey] ? medias[mediakey] + _style : _style
-                    if (opt?.skipProps) {
-                        skiped = {
-                            ...skiped,
-                            ...r.skiped
-                        }
-                    }
-                }
+          stack.push(_css);
+        }
+      } else {
+        let r: any = style(val, classname, opt, dept + 1);
+        const atcss = prop + "{" + r.stack + "}";
+        stack.push(atcss);
+        if (opt?.skipProps) {
+          skiped = {
+            ...skiped,
+            ...r.skiped,
+          };
+        }
+      }
+    } else {
+      if (opt?.skipProps && opt.skipProps(prop, val, dept)) {
+        if (!((classname as any) in skiped)) skiped[classname as string] = [];
+        skiped[classname as string].push(prop);
+        continue;
+      }
+      if (typeof val === "function" || Array.isArray(val)) {
+        continue;
+      }
+      if (typeof val === "object") {
+        for (let media in val) {
+          if (
+            typeof val[media] === "object" ||
+            typeof val[media] === "function" ||
+            Array.isArray(val[media])
+          ) {
+            throw new Error(`Invalid css value: ${val[media]}`);
+          }
+          let breakpoint = media;
+          let isNumber = !isNaN(parseInt(breakpoint));
+          if (!isNumber) {
+            if (
+              opt?.breakpoints &&
+              !isNaN(parseInt((opt.breakpoints as any)[media]))
+            ) {
+              breakpoint = opt.breakpoints[media as BreakpointKeys].toString();
             } else {
-                if (opt?.getProps) {
-                    let _props: any = opt.getProps(prop, val, _css, dept)
-                    if (_props) {
-                        let r: any = style(_props, classname, {
-                            ...opt,
-                            getProps: undefined
-                        })
-                        if (opt?.skipProps) {
-                            skiped = {
-                                ...skiped,
-                                ...r.skiped
-                            }
-                        }
-                        stack.push(r.stack)
-                        continue;
-                    }
-                }
-                if (opt?.aliases && (opt.aliases as any)[prop]) {
-                    let _props = (opt.aliases as any)[prop](val)
-                    if (_props) {
-                        let r: any = style(_props, classname, {
-                            ...opt,
-                            aliases: undefined
-                        }, dept)
-                        r.stack = r.stack.replace(`${classname}{`, '').replace(`}`, '')
-                        stack[0] += r.stack
-                        continue;
-                    }
-                }
-                if (opt?.getValue) {
-                    val = opt.getValue(prop, val, _css, dept)
-                }
-                let p = cssPrefix(prop, val)
-                stack[0] += `${p.prop}:${p.value};`
+              throw new Error(`Invalid breakpoint prop: ${media}`);
             }
+          }
+          let _css = { [prop]: val[media] };
+          let r: any = style(_css, classname, opt, dept);
+          let _style = r.stack;
+          let mediakey = `@media (min-width: ${breakpoint}px)`;
+          medias[mediakey] = medias[mediakey]
+            ? medias[mediakey] + _style
+            : _style;
+          if (opt?.skipProps) {
+            skiped = {
+              ...skiped,
+              ...r.skiped,
+            };
+          }
         }
-    }
-    stack[0] += "}"
-    if (stack[0] === `${classname}{}`) {
-        stack[0] = ""
-    }
-    stack = stack.join('')
-    for (let media in medias) {
-        stack += `${media}{${medias[media].replace(new RegExp(`}\\${classname}\\{`, 'g'), '')}}`
-    }
-
-    if (cachekey) {
-        const d = resolveStyleContainer(opt?.container);
-
-        const selector = opt?.selector ?? "."
-        stack = stack.replace(new RegExp(classname as string, 'g'), `${selector}${classname}`)
-        const r = {
-            cache: false,
-            cachekey,
-            selector,
-            classname: classname as string,
-            css: stack,
-            cssraw: _css,
-            skiped,
-            cacheId,
-            getStyleTag: () => d.container?.querySelector(`style[data-href="${classname}"]`) as HTMLStyleElement | null,
-            deleteStyle: () => {
-                const tag = r.getStyleTag()
-                tag && tag.remove()
-            },
-            inject: () => {
-                const tag = r.getStyleTag() || d.document?.createElement("style");
-                if (tag && !tag?.innerHTML) {
-                    tag.innerHTML = r.css
-                    tag.setAttribute(`data-href`, classname as string)
-                    d.container?.appendChild(tag);
-                }
-                return tag as HTMLStyleElement
-            },
-            refresh: () => {
-                r.deleteStyle()
-                return r.inject()
+      } else {
+        if (opt?.getProps) {
+          let _props: any = opt.getProps(prop, val, _css, dept);
+          if (_props) {
+            let r: any = style(_props, classname, {
+              ...opt,
+              getProps: undefined,
+            });
+            if (opt?.skipProps) {
+              skiped = {
+                ...skiped,
+                ...r.skiped,
+              };
             }
+            stack.push(r.stack);
+            continue;
+          }
         }
-
-        ONCSS_CACHE.set(cacheId, cachekey, r)
-
-        let inject = opt?.injectStyle ?? true
-        if (inject && d.document) {
-            r.inject()
+        if (opt?.aliases && (opt.aliases as any)[prop]) {
+          let _props = (opt.aliases as any)[prop](val);
+          if (_props) {
+            let r: any = style(
+              _props,
+              classname,
+              {
+                ...opt,
+                aliases: undefined,
+              },
+              dept,
+            );
+            r.stack = r.stack.replace(`${classname}{`, "").replace(`}`, "");
+            stack[0] += r.stack;
+            continue;
+          }
         }
-        return r
+        if (opt?.getValue) {
+          val = opt.getValue(prop, val, _css, dept);
+        }
+        let p = cssPrefix(prop, val);
+        stack[0] += `${p.prop}:${p.value};`;
+      }
     }
-    return { stack, skiped }
-}
+  }
+  stack[0] += "}";
+  if (stack[0] === `${classname}{}`) {
+    stack[0] = "";
+  }
+  stack = stack.join("");
+  for (let media in medias) {
+    stack += `${media}{${medias[media].replace(new RegExp(`}\\${classname}\\{`, "g"), "")}}`;
+  }
+
+  if (cachekey) {
+    const d = resolveStyleContainer(opt?.container);
+
+    const selector = opt?.selector ?? ".";
+    stack = stack.replace(
+      new RegExp(classname as string, "g"),
+      `${selector}${classname}`,
+    );
+    const r = {
+      cache: false,
+      cachekey,
+      selector,
+      classname: classname as string,
+      css: stack,
+      cssraw: _css,
+      skiped,
+      cacheId,
+      delete: () => {
+        ONCSS_CACHE.delete(cacheId, cachekey);
+        r.deleteStyle();
+      },
+      getStyleTag: () =>
+        d.container?.querySelector(
+          `style[data-href="${classname}"]`,
+        ) as HTMLStyleElement | null,
+      deleteStyle: () => {
+        const tag = r.getStyleTag();
+        tag && tag.remove();
+      },
+      inject: () => {
+        const tag = r.getStyleTag() || d.document?.createElement("style");
+        if (tag && !tag?.innerHTML) {
+          tag.innerHTML = r.css;
+          tag.setAttribute(`data-href`, classname as string);
+          d.container?.appendChild(tag);
+        }
+        return tag as HTMLStyleElement;
+      },
+      refresh: () => {
+        r.deleteStyle();
+        return r.inject();
+      },
+    };
+
+    ONCSS_CACHE.set(cacheId, cachekey, r);
+
+    let inject = opt?.injectStyle ?? true;
+    if (inject && d.document) {
+      r.inject();
+    }
+    return r;
+  }
+  return { stack, skiped };
+};

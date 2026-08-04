@@ -1,41 +1,41 @@
 {
-   "name": "oncss",
-   "version": "1.2.12",
-   "description": "A CSS framework for modern web development.",
-   "main": "./index.cjs",
-   "module": "./index.js",
-   "types": "./index.d.ts",
-   "type": "module",
-   "scripts": {
-      "start": "makepack start",
-      "build": "makepack build",
-      "release": "makepack release"
-   },
-   "devDependencies": {
-      "@types/react": "^19.2.7",
-      "@types/react-dom": "^19.2.3",
-      "makepack": "^1.7.27",
-      "react": "^19.2.0",
-      "react-dom": "^19.2.0",
-      "typescript": "^5.9.3"
-   },
-   "keywords": [
-      "css",
-      "oncss",
-      "styles",
-      "web development",
-      "frontend"
-   ],
-   "author": "Your Name",
-   "license": "MIT",
-   "repository": {
-      "type": "git",
-      "url": "https://github.com/yourusername/oncss.git"
-   },
-   "bugs": {
-      "url": "https://github.com/yourusername/oncss/issues"
-   },
-   "dependencies": {
-      "youid": "^1.0.13"
-   }
+  "name": "oncss",
+  "version": "1.2.13",
+  "description": "A CSS framework for modern web development.",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "type": "module",
+  "scripts": {
+    "start": "makepack start",
+    "build": "makepack build",
+    "release": "makepack release"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "makepack": "^1.7.27",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "css",
+    "oncss",
+    "styles",
+    "web development",
+    "frontend"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/oncss.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/oncss/issues"
+  },
+  "dependencies": {
+    "youid": "^1.0.13"
+  }
 }
