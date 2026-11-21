@@ -1,6 +1,6 @@
 {
   "name": "oncss",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "description": "A CSS framework for modern web development.",
   "main": "./index.cjs",
   "module": "./index.js",
@@ -26,14 +26,15 @@
     "web development",
     "frontend"
   ],
-  "author": "Your Name",
+  "author": "Naxrul Ahmed",
   "license": "MIT",
+  "homepage": "https://oncss.devnax.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/oncss.git"
+    "url": "https://github.com/devnax/oncss.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/oncss/issues"
+    "url": "https://github.com/devnax/oncss/issues"
   },
   "dependencies": {
     "youid": "^1.0.13"

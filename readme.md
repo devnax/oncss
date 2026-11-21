@@ -1,376 +1,940 @@
 <p align="center">
-  <img width="120" src="https://raw.githubusercontent.com/devnax/oncss/main/logo.png" alt="ONCSS Logo">
+  <img width="120" src="https://raw.githubusercontent.com/devnax/oncss/main/logo.png" alt="ONCSS logo">
 </p>
 
 <h1 align="center">ONCSS</h1>
 
-`oncss` is a CSS-in-JS library that provides developers with a powerful `css` function to style their web applications. It enables modern styling techniques, including nested selectors, responsive design, and dynamic keyframes, all while offering seamless integration with JavaScript frameworks like React.
-
----
+`oncss` is a small CSS-in-JS library that generates scoped CSS from JavaScript or
+TypeScript style objects. It supports nested selectors, custom breakpoints, media
+and container queries, keyframes, global rules, aliases, and custom
+property/value transforms.
 
 ## Installation
-
-Install the `oncss` package via npm:
 
 ```bash
 npm install oncss
 ```
 
-Import the `css` function in your project:
-
-```javascript
-import css from 'oncss';
+```ts
+import { css } from 'oncss';
 ```
 
----
+## Quick start
 
-## Core Concept: The `css` Function
+```ts
+import { css } from 'oncss';
 
-The `css` function is the heart of `oncss`, designed to dynamically generate and inject CSS into your application. It supports:
-
-- **CSS Properties**: Use standard CSS properties and values.
-- **Nested Selectors**: Apply styles to child elements or states using `&`.
-- **Media Queries**: Implement responsive designs with `@media` rules.
-- **Keyframes**: Create animations with `@keyframes`.
-- **Global Styles**: Apply styles globally with `@global`.
-- **Custom Breakpoints**: Define reusable breakpoints for responsiveness.
-- **Other At-Rules**: Utilize additional at-rules like `@container`, `@layer`, and `@supports`.
-
-### Basic Example
-
-```typescript
-const buttonStyles = css({
-  backgroundColor: 'blue',
+const button = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '10px 18px',
   color: 'white',
-  padding: '10px 20px',
-  borderRadius: '5px',
+  backgroundColor: '#2563eb',
+  border: 0,
+  borderRadius: 8,
+
   '&:hover': {
-    backgroundColor: 'darkblue',
-  },
-  '@media (min-width: 768px)': {
-    padding: '15px 30px',
+    backgroundColor: '#1d4ed8',
   },
 });
 
-console.log(buttonStyles);
+const element = document.querySelector('button');
+element?.classList.add(button.classname);
 ```
 
----
+`css()` returns a style factory. By default it generates a class name and injects
+the resulting stylesheet into `document.head`.
 
-## Configuration Options
+```ts
+button.classname; // generated name, for example "x..."
+button.css;       // generated CSS string
+button.cssraw;    // original style object
+```
 
-The `css` function can be customized through an options object:
+> Use `factory.classname` (or `classList.add(factory.classname)`) rather than
+> treating the factory as a string.
 
-### Available Properties
+## How style objects work
 
-| Property      | Type       | Description                                                                                       |
-| ------------- | ---------- | ------------------------------------------------------------------------------------------------- |
-| `classPrefix` | `string`   | Adds a prefix to generated class names.                                                           |
-| `breakpoints` | `object`   | Custom breakpoints for responsive designs.                                                        |
-| `aliases`     | `object`   | Custom shorthand properties for CSS rules.                                                        |
-| `injectStyle` | `boolean`  | Controls whether styles are auto-injected.                                                        |
-| `skipProps`   | `function` | Filters out unwanted properties. Receives `prop`, `value`, and `dept` as arguments.               |
-| `getValue`    | `function` | Transforms property values dynamically. Receives `value`, `prop`, `css`, and `dept` as arguments. |
-| `getProps`    | `function` | Customizes specific property handling. Receives `prop`, `value`, `css`, and `dept` as arguments.  |
+Properties use JavaScript CSS names such as `backgroundColor`, `fontSize`, and
+`zIndex`. ONCSS converts camel-case names to CSS kebab-case names.
 
-### Example with Options
-
-```typescript
-const styles = css({
-  fontSize: 16,
-  padding: 10,
-}, {
-  classPrefix: 'myprefix',
-  breakpoints: {
-    sm: 480,
-    md: 768,
-    lg: 1024,
-  },
+```ts
+const card = css({
+  maxWidth: 480,
+  backgroundColor: '#fff',
+  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.12)',
 });
 ```
 
-### Using Breakpoints
+Numeric values become pixels by default:
 
-You can use the defined breakpoints in your styles to create responsive designs:
-
-```typescript
-const responsiveStyles = css({
-  fontSize: 14,
-  padding: {
-    sm: 12,
-    lg: 24
-  },
-  
-}, {
-  breakpoints: {
-    sm: 480,
-    md: 768,
-    lg: 1024,
-  },
+```ts
+css({
+  width: 320,      // width:320px
+  marginTop: 16,   // margin-top:16px
+  fontWeight: 700, // font-weight:700
+  opacity: 0.8,    // opacity:0.8
+  zIndex: 10,      // z-index:10
 });
 ```
 
----
+Unitless handling also includes `line-height`, `flex`, `flex-grow`,
+`flex-shrink`, `flex-basis`, `order`, `columns`, `perspective`, and
+`stroke-dashoffset`. When a unit is not appropriate, provide an explicit string,
+such as `'50%'`, `'1.5rem'`, or `'auto'`.
 
-## React Integration
+## Selectors
 
-oncss integrates seamlessly with React. Simply pass the generated class name to your component.
+Every nested selector starts with `&`. ONCSS replaces every `&` with the
+generated class name before compiling the stylesheet.
 
-### React Example
+### Pseudo-classes and pseudo-elements
 
-```typescript
-import React from 'react';
-import css from 'oncss';
+```ts
+const link = css({
+  color: '#2563eb',
 
-const buttonStyle = css({
-  backgroundColor: 'green',
-  color: 'white',
-  padding: '10px 20px',
-  borderRadius: '8px',
   '&:hover': {
-    backgroundColor: 'darkgreen',
+    color: '#1d4ed8',
+  },
+
+  '&:focus-visible': {
+    outline: '2px solid #2563eb',
+    outlineOffset: 3,
+  },
+
+  '&::before': {
+    content: '"→ "',
   },
 });
-
-function Button() {
-  return <button className={buttonStyle.toString()}>Click Me</button>;
-}
-
-export default Button;
 ```
 
----
+### Descendants and combinators
 
-## Advanced Features
+Include a space, combinator, or attribute selector after `&` exactly as you
+would in CSS:
 
-### Nested Selectors
-
-Apply styles to child elements or pseudo-classes:
-
-```typescript
-const cardStyles = css({
-  padding: '20px',
-  border: '1px solid #ccc',
-  '& h1': {
-    fontSize: '24px',
-    margin: 0,
+```ts
+const article = css({
+  '& h2': {
+    marginTop: 0,
   },
+
+  '& > img': {
+    display: 'block',
+    width: '100%',
+  },
+
+  '& input:checked + span': {
+    color: '#16a34a',
+  },
+
+  '&[data-size="large"]': {
+    padding: 32,
+  },
+});
+```
+
+### Deep selector nesting
+
+Selector blocks can contain other selector blocks. Nesting is useful for
+component states that also affect descendants.
+
+```ts
+const menu = css({
+  color: '#334155',
+
   '&:hover': {
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  },
-});
-```
+    color: '#0f172a',
 
-### Media Queries
-
-Easily add responsive styles:
-
-```typescript
-const responsiveStyles = css({
-  fontSize: '14px',
-  '@media (min-width: 768px)': {
-    fontSize: '18px',
-  },
-});
-```
-
-### Keyframes
-
-Define and use animations:
-
-```typescript
-const animationStyles = css({
-  '@keyframes fadeIn': {
-    from: { opacity: 0 },
-    to: { opacity: 1 },
-  },
-  animation: 'fadeIn 2s ease-in-out',
-});
-```
-
-### Global Styles
-
-Apply global styles effortlessly:
-
-```typescript
-const globalStyles = css({
-  '@global': {
-    body: {
-      margin: 0,
-      fontFamily: 'Arial, sans-serif',
+    '& .icon': {
+      transform: 'translateX(4px)',
     },
-    a: {
-      color: 'blue',
-      textDecoration: 'none',
+
+    '&::after': {
+      opacity: 1,
     },
   },
 });
 ```
 
----
+The nested `& .icon` rule is scoped beneath the parent component's `:hover`
+state because nested levels continue from the current generated selector.
 
-## Supported At-Rules
+### Selector mode
 
-`oncss` supports various CSS at-rules to enhance your styling capabilities. Here is a list of supported at-rules with descriptions:
+The `selector` option controls the prefix applied to the generated name. The
+default is a class selector (`"."`).
 
-| At-Rule      | Description                                                                  |
-| ------------ | ---------------------------------------------------------------------------- |
-| `@media`     | Used for applying styles based on media queries for responsive design.       |
-| `@keyframes` | Defines animations that can be applied to elements.                          |
-| `@global`    | Applies styles globally across the entire application.                       |
-| `@container` | Used for container queries to apply styles based on container size.          |
-| `@layer`     | Defines style layers to control the order of style application.              |
-| `@supports`  | Applies styles based on the support of specific CSS features in the browser. |
+```ts
+const classStyle = css(
+  { color: 'red' },
+  { selector: '.' },
+);
+// .x... { color:red; }
 
----
+const idStyle = css(
+  { color: 'red' },
+  { selector: '#' },
+);
+// #x... { color:red; }
+```
 
-## Server-Side Styling
-
-`oncss` supports server-side rendering (SSR) by utilizing the `CSSFactory` to store and manage generated CSS styles. This allows you to extract and inject styles into your server-rendered HTML.
-
-### Example with React
-
-Here's an example of how to use `oncss` for server-side rendering with React:
+For ID mode, assign the generated name to `id`:
 
 ```tsx
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
-import css, { CSSFactory } from 'oncss';
+const panel = css({ padding: 20 }, { selector: '#' });
 
-const buttonStyle = css({
-  backgroundColor: 'blue',
-  color: 'white',
-  padding: '10px 20px',
-  borderRadius: '5px',
-  '&:hover': {
-    backgroundColor: 'darkblue',
+function Panel() {
+  return <section id={panel.classname}>Panel</section>;
+}
+```
+
+You can also provide another selector prefix:
+
+```ts
+const dataStyle = css(
+  { color: 'rebeccapurple' },
+  { selector: 'section.' },
+);
+// section.x... { color:rebeccapurple; }
+```
+
+Use this only when your final generated selector is valid; ONCSS performs no
+selector validation. For ordinary styling, keep the default class mode.
+
+## Responsive values and breakpoints
+
+A property value can be an object whose keys are numeric breakpoints or keys
+from the `breakpoints` option. These values compile to `min-width` media
+queries.
+
+```ts
+const layout = css({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: 12,
+
+  gridColumn: {
+    480: 'span 1',
+    768: 'span 2',
   },
 });
+```
 
-function Button() {
-  return <button className={buttonStyle}>Click Me</button>;
+This generates the equivalent of:
+
+```css
+.x... {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
-const App = () => (
-  <div>
-    <Button />
-  </div>
+@media (min-width: 480px) {
+  .x... {
+    grid-column: span 1;
+  }
+}
+```
+
+Named breakpoints are easier to reuse:
+
+```ts
+const responsive = css(
+  {
+    fontSize: {
+      sm: 14,
+      md: 16,
+      lg: 18,
+    },
+    padding: {
+      sm: 12,
+      md: 20,
+      lg: 28,
+    },
+  },
+  {
+    breakpoints: {
+      sm: 480,
+      md: 768,
+      lg: 1024,
+    },
+  },
+);
+```
+
+Responsive value rules:
+
+- Every breakpoint is a `min-width` query in pixels.
+- Numeric keys are supported directly.
+- A named key must exist in `options.breakpoints`.
+- Keep breakpoints in ascending order in the object when possible. This makes
+  the source and emitted CSS easier to reason about.
+- Responsive objects are values for one property. Use an `@media ...` block
+  when multiple properties need to change together.
+
+## Explicit media queries
+
+Use an `@media` key when an entire group of declarations should respond to a
+condition:
+
+```ts
+const hero = css({
+  padding: 24,
+  textAlign: 'center',
+
+  '@media (min-width: 768px)': {
+    padding: 48,
+    textAlign: 'left',
+  },
+
+  '@media (prefers-reduced-motion: reduce)': {
+    animation: 'none',
+    scrollBehavior: 'auto',
+  },
+});
+```
+
+Media blocks can also include nested selectors:
+
+```ts
+const navigation = css({
+  '& .links': {
+    display: 'none',
+  },
+
+  '@media (min-width: 900px)': {
+    '& .links': {
+      display: 'flex',
+      gap: 20,
+    },
+
+    '& .menu-button': {
+      display: 'none',
+    },
+  },
+});
+```
+
+The at-rule type and condition become the emitted CSS key verbatim:
+
+```ts
+'@media screen and (min-width: 1200px)'
+```
+
+## Other at-rules
+
+`@container`, `@layer`, and `@supports` blocks use the same shape as media
+queries.
+
+### Container queries
+
+```ts
+const card = css({
+  containerType: 'inline-size',
+
+  '@container (min-width: 420px)': {
+    display: 'grid',
+    gridTemplateColumns: '120px 1fr',
+  },
+});
+```
+
+### Feature queries
+
+```ts
+const grid = css({
+  display: 'block',
+
+  '@supports (display: grid)': {
+    display: 'grid',
+  },
+});
+```
+
+### Layers
+
+```ts
+const component = css({
+  '@layer components': {
+    padding: 16,
+    borderRadius: 8,
+  },
+});
+```
+
+The supported TypeScript at-rule prefixes are `@media`, `@container`, `@layer`,
+and `@supports`, each followed by a space and their condition or name.
+
+## Keyframes
+
+Define animations with an `@keyframes <name>` key. Steps can use `from`, `to`,
+or percentage keys.
+
+```ts
+const toast = css({
+  '@keyframes toast-in': {
+    from: {
+      opacity: 0,
+      transform: 'translateY(12px)',
+    },
+    '60%': {
+      opacity: 1,
+      transform: 'translateY(-2px)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'translateY(0)',
+    },
+  },
+
+  animation: 'toast-in 240ms ease-out both',
+});
+```
+
+Generated keyframes are included with each style factory. ONCSS does not scope
+or rename the animation name automatically, so choose globally unique names in
+shared applications.
+
+A keyframe step accepts regular CSS declarations but not responsive breakpoint
+objects:
+
+```ts
+const valid = css({
+  '@keyframes pulse': {
+    from: { opacity: 0.6 },
+    to: { opacity: 1 },
+  },
+});
+```
+
+For more complex motion, combine an animation with a media preference:
+
+```ts
+const spinner = css({
+  animation: 'spin 800ms linear infinite',
+
+  '@keyframes spin': {
+    to: {
+      transform: 'rotate(360deg)',
+    },
+  },
+
+  '@media (prefers-reduced-motion: reduce)': {
+    animationDuration: '0.001ms',
+    animationIterationCount: 1,
+  },
+});
+```
+
+## Global styles
+
+`@global` emits each child selector without class scoping. Use it for resets,
+page-level defaults, and non-component styles.
+
+```ts
+css({
+  '@global': {
+    ':root': {
+      color: '#0f172a',
+      backgroundColor: '#ffffff',
+      fontFamily: 'system-ui, sans-serif',
+    },
+
+    '*, *::before, *::after': {
+      boxSizing: 'border-box',
+    },
+
+    body: {
+      margin: 0,
+    },
+
+    'a:hover': {
+      color: '#1d4ed8',
+    },
+  },
+});
+```
+
+Global selectors are literal CSS selectors; do not prefix them with `&`.
+
+## Aliases
+
+Aliases expand a custom property into one or more standard properties. The
+alias receives the supplied value and returns a style object.
+
+```ts
+import { css, type OptionAliases } from 'oncss';
+
+type Aliases = {
+  m: number;
+  px: number;
+};
+
+const aliases: OptionAliases<Aliases> = {
+  m: (value) => ({ margin: value }),
+  px: (value) => ({
+    paddingLeft: value,
+    paddingRight: value,
+  }),
+};
+
+const box = css(
+  {
+    m: 12,
+    px: 20,
+    backgroundColor: '#f8fafc',
+  },
+  { aliases },
+);
+```
+
+Aliases are expanded before normal declarations are emitted. The recursive
+expansion disables aliases for the returned style object, so aliases should
+return standard CSS properties or rules rather than other aliases.
+
+## Custom transforms
+
+The options hooks provide low-level control for integrating design tokens,
+filtering properties, and adapting values.
+
+### `getValue`
+
+`getValue` receives `(property, value, fullStyleObject, depth)` and returns the
+value ONCSS should emit:
+
+```ts
+const themed = css(
+  {
+    color: 'text.primary',
+    padding: 'space.4',
+  },
+  {
+    getValue: (property, value) => {
+      if (property === 'color' && value === 'text.primary') {
+        return '#0f172a';
+      }
+      if (property === 'padding' && value === 'space.4') {
+        return 16;
+      }
+      return value;
+    },
+  },
+);
+```
+
+Because numbers are transformed to pixels later, returning `16` produces
+`padding:16px`.
+
+### `getProps`
+
+`getProps` receives `(property, value, fullStyleObject, depth)`. Return a style
+object to replace the handling of that property, or return `undefined` to use
+normal processing.
+
+```ts
+const layout = css(
+  {
+    inset: 24,
+  },
+  {
+    getProps: (property, value) => {
+      if (property === 'inset') {
+        return {
+          top: value,
+          right: value,
+          bottom: value,
+          left: value,
+        };
+      }
+    },
+  },
+);
+```
+
+When `getProps` returns an object, its recursive expansion does not call
+`getProps` again.
+
+### `skipProps`
+
+Return `true` to omit a property. Skipped properties and the selector they
+belonged to are available on the returned factory:
+
+```ts
+const safeStyle = css(
+  {
+    color: 'red',
+    unsupportedExperimentalProperty: 'value',
+  },
+  {
+    skipProps: (property) =>
+      property.startsWith('unsupported'),
+  },
 );
 
-// Render the component to a string
-const html = ReactDOMServer.renderToString(<App />);
+console.log(safeStyle.skiped);
+```
 
-let styles: any = Array.from(CSSFactory.values()).map((style) => {
-  return `<style data-href="${style.classname}">${style.css}</style>`
+All hooks receive a `dept` (depth) number. Root declarations start at `1`, and
+the depth increases as nested selectors or at-rules are processed.
+
+## Configuration reference
+
+The options object is the second argument to `css()`:
+
+```ts
+const factory = css(styleObject, options);
+```
+
+| Option | Type | Default | Purpose |
+| --- | --- | --- | --- |
+| `classPrefix` | `string` | `''` | Prefixes the generated `classname`. |
+| `selector` | `string` | `'.'` | Prefix added before the generated name in CSS. |
+| `breakpoints` | `Record<string, number>` | none | Resolves named responsive property values to pixel widths. |
+| `aliases` | alias map | none | Expands custom properties into style objects. |
+| `injectStyle` | `boolean` | `true` | Controls automatic style injection. |
+| `container` | `Document \| HTMLElement` | `document` | Chooses where the style tag is inserted. |
+| `cacheId` | `string` | `'global'` | Selects a named cache group. |
+| `skipProps` | function | none | Omits selected declarations. |
+| `getValue` | function | none | Transforms declaration values. |
+| `getProps` | function | none | Replaces declaration handling with another style object. |
+
+For class naming, `classPrefix` affects the generated name while `selector`
+affects how that name is addressed by the stylesheet:
+
+```ts
+const button = css(
+  { color: 'white' },
+  {
+    classPrefix: 'button-',
+    selector: '.',
+  },
+);
+
+button.classname.startsWith('button-'); // true
+```
+
+## Style factory API
+
+```ts
+const factory = css({ color: 'red' });
+```
+
+| Property | Description |
+| --- | --- |
+| `classname` | Generated class or ID name. |
+| `css` | Generated CSS string. |
+| `cssraw` | Original style object. |
+| `cachekey` | Key used to reuse the generated factory. |
+| `cacheId` | Name of the cache containing the factory. |
+| `cache` | `true` when a previous factory was reused for the request. |
+| `skiped` | Properties omitted by `skipProps`, grouped by selector. |
+| `inject()` | Append or populate the factory's style tag. |
+| `refresh()` | Remove the current style tag and inject the CSS again. |
+| `deleteStyle()` | Remove only the injected style tag. |
+| `getStyleTag()` | Return the injected `style` element, or `null`. |
+| `delete()` | Remove the factory from the cache and remove its style tag. |
+
+### Manual injection
+
+Disable automatic injection when you need to collect or control CSS output:
+
+```ts
+const button = css(
+  { backgroundColor: '#2563eb' },
+  { injectStyle: false },
+);
+
+console.log(button.css);
+button.inject();
+```
+
+### Target document or element
+
+Use `container` to inject into an iframe document, a shadow-root host element,
+or another owned HTML element.
+
+```ts
+const iframe = document.querySelector('iframe');
+const iframeDocument = iframe?.contentDocument;
+
+if (iframeDocument) {
+  css(
+    { color: 'tomato' },
+    { container: iframeDocument },
+  );
+}
+```
+
+```ts
+const host = document.querySelector('#shadow-host') as HTMLElement;
+
+css(
+  { color: 'tomato' },
+  { container: host },
+);
+```
+
+A `Document` injects into its `<head>`. An `HTMLElement` receives the style tag
+directly, allowing styles to be placed in a specific container.
+
+## Caching
+
+ONCSS caches factories by `cacheId` and a generated style key. The key includes
+the source style object and `selector`. Repeated equivalent calls can therefore
+reuse the same factory.
+
+```ts
+const first = css({ color: 'red' }, { cacheId: 'dashboard' });
+const second = css({ color: 'red' }, { cacheId: 'dashboard' });
+
+first === second; // true
+```
+
+Use different `cacheId` values to isolate groups of generated styles:
+
+```ts
+const appStyle = css(
+  { color: 'red' },
+  { cacheId: 'main-app' },
+);
+
+const previewStyle = css(
+  { color: 'red' },
+  { cacheId: 'preview' },
+);
+```
+
+The cache API is exported for advanced use:
+
+```ts
+import { ONCSS_CACHE } from 'oncss';
+
+const group = ONCSS_CACHE.caches().get('main-app');
+
+ONCSS_CACHE.delete('main-app', appStyle.cachekey);
+```
+
+Changing options such as breakpoints, aliases, or transform hooks without
+changing the style object or selector can still reuse the prior cache entry.
+Use a distinct `cacheId` when the same style source is compiled with materially
+different options.
+
+## Server-side rendering
+
+With no browser `window`, ONCSS still generates factories and CSS but cannot
+inject a style element. Collect the generated factories from the cache and
+render their `css` into your document head.
+
+```tsx
+import { renderToString } from 'react-dom/server';
+import { css, ONCSS_CACHE } from 'oncss';
+
+const button = css(
+  {
+    color: 'white',
+    backgroundColor: '#2563eb',
+    '&:hover': {
+      backgroundColor: '#1d4ed8',
+    },
+  },
+  {
+    cacheId: 'server-render',
+    injectStyle: false,
+  },
+);
+
+const html = renderToString(
+  <button className={button.classname}>Save</button>,
+);
+
+const styles = Array.from(
+  ONCSS_CACHE.caches().get('server-render')?.values() ?? [],
+)
+  .map((factory) =>
+    `<style data-href="${factory.classname}">${factory.css}</style>`,
+  )
+  .join('');
+
+const documentHtml = `
+  <!doctype html>
+  <html>
+    <head>${styles}</head>
+    <body><div id="root">${html}</div></body>
+  </html>
+`;
+```
+
+Use a request-specific or intentionally scoped `cacheId` if styles should not
+leak between SSR requests. Also apply your existing HTML escaping policy before
+inserting application-derived content into an HTML response.
+
+## React
+
+Pass `factory.classname` to `className`:
+
+```tsx
+import { css } from 'oncss';
+
+const buttonStyle = css({
+  padding: '10px 18px',
+  color: 'white',
+  backgroundColor: '#2563eb',
+  border: 0,
+  borderRadius: 8,
+
+  '&:hover': {
+    backgroundColor: '#1d4ed8',
+  },
 });
 
-// Inject the styles into the HTML
-const fullHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SSR with oncss</title>
-  ${styles}
-</head>
-<body>
-  <div id="root">${html}</div>
-</body>
-</html>
-`;
-
-console.log(fullHtml);
+export function Button() {
+  return (
+    <button type="button" className={buttonStyle.classname}>
+      Save
+    </button>
+  );
+}
 ```
 
-In this example, the `CSSFactory` is used to collect all generated CSS styles during the server-side rendering process. These styles are then injected into the HTML document, ensuring that the styles are applied correctly when the page is loaded in the browser.
+For styles generated at module scope, ONCSS injects and caches them once. For
+dynamic styles, call `css()` in response to the relevant state and reuse cache
+IDs where appropriate.
 
----
+## Utility functions
 
-## Utility Functions
+### `formatCSSProp`
 
-### CSSFactory
-
-`CSSFactory` is a global cache for storing generated CSS styles. It helps in reusing styles and avoiding redundant style generation.
-
-### formatCSSProp
-
-`formatCSSProp` is a utility function that converts camelCase CSS property names to kebab-case.
-
-```typescript
+```ts
 import { formatCSSProp } from 'oncss';
 
-const formattedProp = formatCSSProp('backgroundColor');
-console.log(formattedProp); // 'background-color'
+formatCSSProp('backgroundColor'); // 'background-color'
 ```
 
-### formatCSSValue
+### `formatCSSValue`
 
-`formatCSSValue` is a utility function that formats CSS values, adding units like `px` where necessary.
-
-```typescript
+```ts
 import { formatCSSValue } from 'oncss';
 
-const formattedValue = formatCSSValue('width', 100);
-console.log(formattedValue); // '100px'
+formatCSSValue('width', 100); // '100px'
+formatCSSValue('opacity', 0.5); // 0.5
 ```
 
----
+## TypeScript
 
-## TypeScript Integration
+The package exports the main CSS and option types:
 
-`oncss` provides full TypeScript support, allowing you to define types for your CSS properties and options.
+```ts
+import {
+  css,
+  type CSSOptionProps,
+  type CSSProps,
+  type OptionAliases,
+} from 'oncss';
 
-### Defining CSS Properties
-
-You can define the types for your CSS properties using the `CSSProps` type:
-
-```typescript
-import { CSSProps } from 'oncss';
-
-interface MyAliases {
-  customColor?: string;
-}
-
-const styles: CSSProps<MyAliases, 'sm' | 'md' | 'lg'> = {
-  backgroundColor: 'blue',
-  customColor: 'red',
-  '@media (min-width: 768px)': {
-    backgroundColor: 'green',
-  },
+type Aliases = {
+  m: number;
 };
-```
 
-### Using Options with Types
+type Breakpoint = 'sm' | 'md' | 'lg';
 
-You can also define types for the options object:
+const aliases: OptionAliases<Aliases> = {
+  m: (value) => ({ margin: value }),
+};
 
-```typescript
-import { CSSOptionProps } from 'oncss';
-
-const options: CSSOptionProps<MyAliases, 'sm' | 'md' | 'lg'> = {
-  classPrefix: 'myprefix',
+const options: CSSOptionProps<Aliases, Breakpoint> = {
+  aliases,
   breakpoints: {
     sm: 480,
     md: 768,
     lg: 1024,
   },
-  aliases: {
-    customColor: (value) => ({ color: value }),
+};
+
+const styles: CSSProps<Aliases, Breakpoint> = {
+  m: 8,
+  color: 'red',
+  fontSize: {
+    sm: 14,
+    lg: 18,
   },
 };
 
-const styles = css({
-  fontSize: 16,
-  padding: 10,
-}, options);
+const generated = css(styles, options);
 ```
 
----
+## Complete example
 
-## Conclusion
+```tsx
+import { css, type OptionAliases } from 'oncss';
 
-`oncss` simplifies styling for modern web applications. Its robust feature set, from responsive design to keyframe animations, makes it an invaluable tool for developers.
+type Aliases = {
+  px: number;
+  radius: number;
+};
+
+const aliases: OptionAliases<Aliases> = {
+  px: (value) => ({
+    paddingLeft: value,
+    paddingRight: value,
+  }),
+  radius: (value) => ({
+    borderRadius: value,
+  }),
+};
+
+const notification = css(
+  {
+    px: 16,
+    radius: 10,
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: '#0f172a',
+    backgroundColor: '#f8fafc',
+    boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)',
+    animation: 'notification-enter 220ms ease-out both',
+
+    '&:hover': {
+      backgroundColor: '#f1f5f9',
+    },
+
+    '@media (min-width: 768px)': {
+      px: 24,
+      '& .actions': {
+        display: 'flex',
+      },
+    },
+
+    '@keyframes notification-enter': {
+      from: {
+        opacity: 0,
+        transform: 'translateY(8px)',
+      },
+      to: {
+        opacity: 1,
+        transform: 'translateY(0)',
+      },
+    },
+  },
+  {
+    aliases,
+    breakpoints: {
+      md: 768,
+    },
+  },
+);
+
+export function Notification() {
+  return (
+    <div className={notification.classname}>
+      Saved successfully
+      <div className="actions">Actions</div>
+    </div>
+  );
+}
+```
 
 ## Author
 
@@ -388,10 +952,10 @@ const styles = css({
   </tr>
 </table>
 
-<h2>⚡️ Where to find me</h2>
+<h2>Where to find me</h2>
 
-<p><a target="_blank" href="mailto:devnaxrul@gmail.com" style="display: inline-block;"><img src="https://img.shields.io/badge/-Email-05122A?style=for-the-badge&logo=gmail&logoColor=white&color=orange" alt="gmail" /></a>
-<a target="_blank" href="https://twitter.com/devnaxx" style="display: inline-block;"><img src="https://img.shields.io/badge/twitter-x?style=for-the-badge&logo=x&logoColor=white&color=%230f1419" alt="twitter" /></a>
-<a target="_blank" href="https://www.linkedin.com/in/devnax" style="display: inline-block;"><img src="https://img.shields.io/badge/linkedin-logo?style=for-the-badge&logo=linkedin&logoColor=white&color=%230a77b6" alt="linkedin" /></a>
-<a target="_blank" href="https://www.facebook.com/devnax" style="display: inline-block;"><img src="https://img.shields.io/badge/facebook-logo?style=for-the-badge&logo=facebook&logoColor=white&color=%230866ff" alt="facebook" /></a>
-<a target="_blank" href="https://www.instagram.com/devnaxx" style="display: inline-block;"><img src="https://img.shields.io/badge/instagram-logo?style=for-the-badge&logo=instagram&logoColor=white&color=%23F35369" alt="instagram" /></a></p>
+<p><a target="_blank" href="mailto:devnaxrul@gmail.com"><img src="https://img.shields.io/badge/-Email-05122A?style=for-the-badge&logo=gmail&logoColor=white&color=orange" alt="Email" /></a>
+<a target="_blank" href="https://twitter.com/devnaxx"><img src="https://img.shields.io/badge/twitter-x?style=for-the-badge&logo=x&logoColor=white&color=%230f1419" alt="Twitter" /></a>
+<a target="_blank" href="https://www.linkedin.com/in/devnax"><img src="https://img.shields.io/badge/linkedin-logo?style=for-the-badge&logo=linkedin&logoColor=white&color=%230a77b6" alt="LinkedIn" /></a>
+<a target="_blank" href="https://www.facebook.com/devnax"><img src="https://img.shields.io/badge/facebook-logo?style=for-the-badge&logo=facebook&logoColor=white&color=%230866ff" alt="Facebook" /></a>
+<a target="_blank" href="https://www.instagram.com/devnaxx"><img src="https://img.shields.io/badge/instagram-logo?style=for-the-badge&logo=instagram&logoColor=white&color=%23F35369" alt="Instagram" /></a></p>
